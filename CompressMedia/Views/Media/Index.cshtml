@@ -1,0 +1,30 @@
+﻿@model IEnumerable<CompressMedia.DTOs.MediaDto>
+
+@{
+	ViewBag.Title = "Medias";
+	Layout = "_Layout";
+}
+
+<h2>Medias</h2>
+
+<ul class="list-group">
+	<li class="list-group-item"><a asp-controller="Media" asp-action="Image">Images</a></li>
+	<li class="list-group-item"><a asp-controller="Media" asp-action="Video">Videos</a></li>
+</ul>
+
+
+<div class="row">
+    @foreach (var media in Model)
+    {
+        <div class="col-md-3">
+            <div class="thumbnail">
+                @* <img src="@media.MediaPath alt="Image" style="width:100%"> *@
+                <iframe src="~/@media.MediaPath" title="Tai's video" allowfullscreen></iframe>
+                <div class="caption">
+                    <p>@media.CreatedDate.ToString("yyyy-MM-dd")</p>
+                    <p>@media.Size MB</p>
+                </div>
+            </div>
+        </div>
+    }
+</div>

@@ -1,0 +1,31 @@
+﻿@model IEnumerable<CompressMedia.DTOs.UserDto>
+
+@{
+	ViewBag.Title = "Get Users";
+	Layout = "_Layout";
+}
+
+<h2>Get Users</h2>
+@* `
+<form asp-action="GetAllUser" method="post">
+    <div class="form-group">
+        <label asp-for="Username"></label>
+        <input asp-for="Username" class="form-control" />
+        <span asp-validation-for="Username" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Login</button>
+</form> *@
+
+
+
+<ul class="list-group">
+	@foreach (var user in Model)
+	{
+		<li class="list-group-item">@user.Username</li>
+	}
+	@*
+	<li class="list-group-item">Dapibus ac facilisis in</li>
+	<li class="list-group-item">Morbi leo risus</li>
+	<li class="list-group-item">Porta ac consectetur ac</li>
+	<li class="list-group-item">Vestibulum at eros</li> *@
+</ul>
