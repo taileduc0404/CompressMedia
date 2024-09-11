@@ -1,0 +1,14 @@
+﻿@model CompressMedia.DTOs.MediaDto
+
+@{
+	ViewData["Title"] = "Image Gallery";
+}
+
+<h2>Upload And Compress Video</h2>
+<form asp-action="UploadVideo" asp-controller="Media" method="post" enctype="multipart/form-data">
+	<div class="input-group">
+		<input type="file" asp-for="Media" class="form-control" aria-describedby="inputGroupFileAddon04" aria-label="Upload">
+		<button class="btn btn-outline-secondary" type="submit" id="inputGroupFileAddon04">Submit</button>
+	</div>
+</form>
+

@@ -7,24 +7,46 @@
 
 <h2>Medias</h2>
 
-<ul class="list-group">
-	<li class="list-group-item"><a asp-controller="Media" asp-action="Image">Images</a></li>
-	<li class="list-group-item"><a asp-controller="Media" asp-action="Video">Videos</a></li>
-</ul>
+@* <button type="button" class="btn btn-primary"><a asp-controller="Media" asp-action="Video" class="text-white"> Add New Videos</a></button> *@
 
+<div class="dropdown">
+	<a class="btn btn-primary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+		Add new video
+	</a>
+	<ul class="dropdown-menu">
+		<li><a class="dropdown-item" asp-controller="Media" asp-action="UploadVideo">Upload Only</a></li>
+		<li><a class="dropdown-item" asp-controller="Media" asp-action="UploadAndCompressVideo">Upload and compress</a></li>
 
-<div class="row">
-    @foreach (var media in Model)
-    {
-        <div class="col-md-3">
-            <div class="thumbnail">
-                @* <img src="@media.MediaPath alt="Image" style="width:100%"> *@
-                <iframe src="~/@media.MediaPath" title="Tai's video" allowfullscreen></iframe>
-                <div class="caption">
-                    <p>@media.CreatedDate.ToString("yyyy-MM-dd")</p>
-                    <p>@media.Size MB</p>
-                </div>
-            </div>
-        </div>
-    }
+	</ul>
 </div>
+
+<table class="table table-bordered mt-4">
+	<thead>
+		<tr>
+			<th>Name</th>
+			@* <th>Description</th> *@
+			<th>Type</th>
+			<th>Size</th>
+			<th>Status</th>
+			<th>Duration</th>
+			<th>Action</th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var media in Model)
+		{
+			<tr>
+				<th>@media.MediaPath</th>
+				@* <td>This is a video</td> *@
+				<td>@media.MediaType</td>
+				<td>@media.Size Mb</td>
+				<td>@media.Status</td>
+				<td>200</td>
+				<td>
+					<button type="submit" class="btn btn-outline-danger">Delete</button>
+					<button type="submit" class="btn btn-outline-primary">Compress</button>
+				</td>
+			</tr>
+		}
+	</tbody>
+</table>

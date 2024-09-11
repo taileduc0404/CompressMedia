@@ -8,7 +8,8 @@ namespace CompressMedia.Repositories.Interfaces
 		//Task<ICollection<Media>> GetAllImage();
 		Task<ICollection<Media>> GetAllVideo();
         bool UploadMedia(MediaDto mediaDto);
-        //Task<string?> OptimizeImage(string imgPath, string fileName, string savePath);
-        string OptimizeVideo(string videoPath, string fileNameOutput);
+        bool UploadAndCompressMedia(MediaDto mediaDto);
+		//Task<string?> OptimizeImage(string imgPath, string fileName, string savePath);
+		string OptimizeVideo(string videoPath, string fileNameOutput);
     }
 }

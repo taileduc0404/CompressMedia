@@ -36,12 +36,14 @@ namespace CustomAuth.Controllers
 			}
 
 			// Chuyển đổi danh sách Media sang MediaDto để truyền vào View
+			string splitString = @"D:\BÀI TẬP\ASP.NET\CompressMedia\CompressMedia\wwwroot\Medias\Videos\";
 			IEnumerable<MediaDto> mediaDtoList = mediaList.Select(media => new MediaDto
 			{
-				//MediaType = media.MediaType,
+				MediaType = media.MediaType,
 				CreatedDate = media.CreatedDate,
 				//UserId = media.UserId,
-				MediaPath = media.MediaPath,
+				Status = media.Status,
+				MediaPath = media.MediaPath!.Replace(splitString, ""),
 				Size = Math.Round((double)(media.Size / 1048576.0), 2)
 			});
 
@@ -54,7 +56,18 @@ namespace CustomAuth.Controllers
 		}
 
 		[HttpGet]
-		public async Task<IActionResult> Video()
+		public async Task<IActionResult> UploadVideo()
+		{
+			IEnumerable<User> users = await _userService.GetAllUser();
+			if (users == null)
+			{
+				return RedirectToAction("AccessDenied");
+			}
+			return View();
+		}
+
+		[HttpGet]
+		public async Task<IActionResult> UploadAndCompressVideo()
 		{
 			IEnumerable<User> users = await _userService.GetAllUser();
 			if (users == null)
@@ -69,6 +82,21 @@ namespace CustomAuth.Controllers
 		public IActionResult UploadVideo(MediaDto mediaDto)
 		{
 			bool result = _mediaService.UploadMedia(mediaDto);
+			if (!result)
+			{
+				_notyfService.Success("Upload image failed.");
+				return RedirectToAction("Index");
+			}
+
+			_notyfService.Success("Upload image successfully.");
+			return RedirectToAction("Index");
+		}
+
+		[HttpPost]
+		[RequestFormLimits(MultipartBodyLengthLimit = 536870912)]
+		public IActionResult UploadAndCompressVideo(MediaDto mediaDto)
+		{
+			bool result = _mediaService.UploadAndCompressMedia(mediaDto);
 			if (!result)
 			{
 				_notyfService.Success("Upload image failed.");
