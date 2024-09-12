@@ -5,11 +5,10 @@ namespace CompressMedia.Repositories.Interfaces
 {
 	public interface IMediaService
 	{
-		//Task<ICollection<Media>> GetAllImage();
 		Task<ICollection<Media>> GetAllVideo();
-        bool UploadMedia(MediaDto mediaDto);
-        bool UploadAndCompressMedia(MediaDto mediaDto);
-		//Task<string?> OptimizeImage(string imgPath, string fileName, string savePath);
+		Task<Media> GetMediaById(int mediaId);
+        string UploadMedia(MediaDto mediaDto);
+		bool CompressMedia(string fileNameInput);
 		string OptimizeVideo(string videoPath, string fileNameOutput);
-    }
+	}
 }
