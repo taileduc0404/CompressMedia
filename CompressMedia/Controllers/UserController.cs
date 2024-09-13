@@ -79,5 +79,5 @@ namespace CustomAuth.Controllers
 			return View(userDto);
 		}
 
-    }
+	}
 }

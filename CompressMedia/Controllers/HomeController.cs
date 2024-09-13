@@ -2,13 +2,12 @@
 using CompressMedia.DTOs;
 using CompressMedia.Models;
 using CompressMedia.Repositories.Interfaces;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
 namespace CompressMedia.Controllers
 {
-    public class HomeController : Controller
+	public class HomeController : Controller
 	{
 		private readonly ILogger<HomeController> _logger;
 		private readonly IAuthService _authService;
