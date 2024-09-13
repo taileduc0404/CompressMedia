@@ -1,0 +1,20 @@
+﻿@model CompressMedia.DTOs.MediaDto
+
+@{
+    ViewData["Title"] = "Delete Media";
+}
+
+<h2>Delete Media</h2>
+
+@if (Model == null)
+{
+    <p>Model is null. Please check the data passed to this view.</p>
+}
+else
+{
+    <form asp-action="DeleteMedia" asp-controller="Media" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="mediaId" value="@Model.MediaId" />
+        
+        <button class="btn btn-outline-secondary" type="submit">Delete</button>
+    </form>
+}

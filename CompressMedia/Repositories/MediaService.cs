@@ -2,409 +2,455 @@
 using CompressMedia.DTOs;
 using CompressMedia.Models;
 using CompressMedia.Repositories.Interfaces;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Newtonsoft.Json;
-using System;
 using System.Diagnostics;
 
 namespace CompressMedia.Repositories
 {
-    public class MediaService : IMediaService
-    {
-        private readonly ApplicationDbContext _context;
-        private readonly IAuthService _authService;
-        private readonly IFileProvider _fileProvider;
-        public MediaService(ApplicationDbContext context, IAuthService authService, IFileProvider fileProvider)
-        {
-            _context = context;
-            _authService = authService;
-            _fileProvider = fileProvider;
-        }
+	public class MediaService : IMediaService
+	{
+		private readonly ApplicationDbContext _context;
+		private readonly IAuthService _authService;
+		private readonly IFileProvider _fileProvider;
+		public MediaService(ApplicationDbContext context, IAuthService authService, IFileProvider fileProvider)
+		{
+			_context = context;
+			_authService = authService;
+			_fileProvider = fileProvider;
+		}
 
-        /// <summary>
-        /// Kiểm tra xem tên của Video có tồn tại không
-        /// </summary>
-        /// <param name="videoName"></param>
-        /// <returns></returns>
-        private bool CheckVideoNameExist(string videoName)
-        {
-            string splitString = @"D:\BÀI TẬP\ASP.NET\CompressMedia\CompressMedia\wwwroot\Medias\Videos\";
-            Media result = _context.medias.FirstOrDefault(m => m.MediaPath!.Replace(splitString, "") == videoName)!;
-            if (result is not null)
-            {
-                return false;
-            }
-            return true;
+		/// <summary>
+		/// Tìm media bằng Id
+		/// </summary>
+		/// <param name="mediaId"></param>
+		/// <returns></returns>
+		public async Task<Media> GetMediaById(int mediaId)
+		{
+			Media media = await _context.medias.SingleOrDefaultAsync(m => m.MediaId == mediaId);
+			if (media == null)
+			{
+				return null!;
+			}
 
-        }
+			return media;
+		}
 
-        /// <summary>
-        /// Tìm media bằng Id
-        /// </summary>
-        /// <param name="mediaId"></param>
-        /// <returns></returns>
-        public async Task<Media> GetMediaById(int mediaId)
-        {
-            Media media = await _context.medias.SingleOrDefaultAsync(m => m.MediaId == mediaId);
-            if (media == null)
-            {
-                return null!;
-            }
+		/// <summary>
+		/// Lấy ra danh sách video của user đagn đăngg nhập
+		/// </summary>
+		/// <returns></returns>
+		public async Task<ICollection<Media>> GetAllVideo()
+		{
+			string cookie = _authService.GetLoginInfoFromCookie();
+			string cookieDecode = _authService.DecodeFromBase64(cookie);
+			LoginDto userInfo = JsonConvert.DeserializeObject<LoginDto>(cookieDecode);
+			User? user = await _context.users.FirstOrDefaultAsync(u => u.Username == userInfo.Username);
+			return await _context.medias.Where(m => m.MediaType!.StartsWith("video") && m.UserId == user!.UserId).ToListAsync();
+		}
 
-            return media;
-        }
+		/// <summary>
+		/// Thực thi command
+		/// </summary>
+		/// <param name="arguments"></param>
+		private void ExecuteCommand(string arguments)
+		{
 
-        /// <summary>
-        /// Lấy ra danh sách video của user đagn đăngg nhập
-        /// </summary>
-        /// <returns></returns>
-        public async Task<ICollection<Media>> GetAllVideo()
-        {
-            string cookie = _authService.GetLoginInfoFromCookie();
-            string cookieDecode = _authService.DecodeFromBase64(cookie);
-            LoginDto userInfo = JsonConvert.DeserializeObject<LoginDto>(cookieDecode);
-            User? user = await _context.users.FirstOrDefaultAsync(u => u.Username == userInfo.Username);
-            return await _context.medias.Where(m => m.MediaType!.StartsWith("video") && m.UserId == user!.UserId).ToListAsync();
-        }
+			ProcessStartInfo psi = new ProcessStartInfo
+			{
+				FileName = "ffmpeg",
+				Arguments = arguments,
+				UseShellExecute = false,
+				RedirectStandardOutput = true,
+				RedirectStandardError = true,
+				RedirectStandardInput = true
+			};
 
-        /// <summary>
-        /// Thực thi command
-        /// </summary>
-        /// <param name="arguments"></param>
-        private void ExecuteCommand(string arguments)
-        {
+			using (Process process = new Process())
+			{
+				process.StartInfo = psi;
 
-            ProcessStartInfo psi = new ProcessStartInfo
-            {
-                FileName = "ffmpeg",
-                Arguments = arguments,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                RedirectStandardInput = true
-            };
+				// Show ra output hoặc error
+				process.OutputDataReceived += (sender, args) => Console.WriteLine(args.Data);
+				process.ErrorDataReceived += (sender, args) => Console.WriteLine(args.Data);
 
-            using (Process process = new Process())
-            {
-                process.StartInfo = psi;
+				// Chạy process
+				process.Start();
 
-                // Show ra output hoặc error
-                process.OutputDataReceived += (sender, args) => Console.WriteLine(args.Data);
-                process.ErrorDataReceived += (sender, args) => Console.WriteLine(args.Data);
+				// Đọc output hoặc error
+				process.BeginOutputReadLine();
+				process.BeginErrorReadLine();
 
-                // Chạy process
-                process.Start();
+				// Chờ cho kết thúc
+				process.WaitForExit();
+			}
+		}
 
-                // Đọc output hoặc error
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
+		/// <summary>
+		/// Lấy thông tin video
+		/// </summary>
+		/// <param name="videoPath"></param>
+		/// <param name="width"></param>
+		/// <param name="height"></param>
+		/// <param name="fps"></param>
+		/// <param name="bitrate"></param>
+		/// <exception cref="FileNotFoundException"></exception>
+		/// <exception cref="Exception"></exception>
+		private void GetVideoInfo(string videoPath, out int width, out int height, out int fps, out int bitrate)
+		{
+			if (!File.Exists(videoPath))
+			{
+				throw new FileNotFoundException($"The file {videoPath} does not exist");
+			}
 
-                // Chờ cho kết thúc
-                process.WaitForExit();
-            }
-        }
+			string argument = $"-v error -select_streams v:0 -show_entries stream=width,height,r_frame_rate,bit_rate -of csv=p=0 {videoPath}";
+			ProcessStartInfo psi = new ProcessStartInfo
+			{
+				FileName = "ffprobe",
+				Arguments = argument,
+				UseShellExecute = false,
+				RedirectStandardOutput = true,
+				RedirectStandardError = true
+			};
 
-        /// <summary>
-        /// Lấy thông tin video
-        /// </summary>
-        /// <param name="videoPath"></param>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <param name="fps"></param>
-        /// <param name="bitrate"></param>
-        /// <exception cref="FileNotFoundException"></exception>
-        /// <exception cref="Exception"></exception>
-        private void GetVideoInfo(string videoPath, out int width, out int height, out int fps, out int bitrate)
-        {
-            if (!File.Exists(videoPath))
-            {
-                throw new FileNotFoundException($"The file {videoPath} does not exist");
-            }
+			using (Process process = new Process())
+			{
+				process.StartInfo = psi;
+				process.Start();
 
-            string argument = $"-v error -select_streams v:0 -show_entries stream=width,height,r_frame_rate,bit_rate -of csv=p=0 {videoPath}";
-            ProcessStartInfo psi = new ProcessStartInfo
-            {
-                FileName = "ffprobe",
-                Arguments = argument,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
+				string output = process.StandardOutput.ReadToEnd();
+				string error = process.StandardError.ReadToEnd();
+				process.WaitForExit();
 
-            using (Process process = new Process())
-            {
-                process.StartInfo = psi;
-                process.Start();
+				if (!string.IsNullOrEmpty(error))
+				{
+					throw new Exception($"FFprobe Error: {error}");
+				}
 
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-                process.WaitForExit();
+				if (string.IsNullOrEmpty(output))
+				{
+					throw new Exception("No output from ffprobe.");
+				}
 
-                if (!string.IsNullOrEmpty(error))
-                {
-                    throw new Exception($"FFprobe Error: {error}");
-                }
+				string[] lines = output.Split(',');
+				if (lines.Length >= 4)
+				{
+					width = int.Parse(lines[0]);
+					height = int.Parse(lines[1]);
+					fps = ParseFps(lines[2]);
+					bitrate = int.Parse(lines[3]) / 1024; // Đổi byte sang kb
+				}
+				else
+				{
+					throw new Exception("Unexpected ffprobe output format.");
+				}
+			}
+		}
 
-                if (string.IsNullOrEmpty(output))
-                {
-                    throw new Exception("No output from ffprobe.");
-                }
+		/// <summary>
+		/// Định dạng lại fps
+		/// </summary>
+		/// <param name="fpsString"></param>
+		/// <returns></returns>
+		/// <exception cref="Exception"></exception>
+		private int ParseFps(string fpsString)
+		{
+			var parts = fpsString.Split('/');
+			if (parts.Length == 2 && int.TryParse(parts[0], out int numerator) && int.TryParse(parts[1], out int denominator))
+			{
+				return numerator / denominator;
+			}
+			throw new Exception("Invalid FPS format.");
+		}
 
-                string[] lines = output.Split(',');
-                if (lines.Length >= 4)
-                {
-                    width = int.Parse(lines[0]);
-                    height = int.Parse(lines[1]);
-                    fps = ParseFps(lines[2]);
-                    bitrate = int.Parse(lines[3]) / 1024; // Đổi byte sang kb
-                }
-                else
-                {
-                    throw new Exception("Unexpected ffprobe output format.");
-                }
-            }
-        }
+		/// <summary>
+		/// Lưu các option
+		/// </summary>
+		/// <returns></returns>
+		private static readonly Dictionary<string, string> CompressFullOption = new()
+		{
+				#region Full Option
+				{"1920x1080_60fps_trueFps_trueResolution_trueBitrate","-i {videoPath} -c:v libvpx-vp9 -vf scale=1280:720 -aspect 16:9 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K {outputPath}" },
+				{"1920x1080_30fps_trueFps_trueResolution_trueBitrate","-i {videoPath} -c:v libvpx-vp9 -vf scale=1280:720 -aspect 16:9 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K {outputPath}" },
+				{"1280x720_60fps_trueFps_trueResolution_trueBitrate","-i {videoPath} -c:v libvpx-vp9 -vf scale=854:480 -aspect 16:9 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K {outputPath}" },
+				{"1280x720_30fps_trueFps_trueResolution_trueBitrate","-i {videoPath} -c:v libvpx-vp9 -vf scale=854:480 -aspect 16:9 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K {outputPath}" },
+				{"854x480_60fps_trueFps_trueResolution_trueBitrate","-i {videoPath} -c:v libvpx-vp9 -vf scale=640:360 -aspect 4:3 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K {outputPath}" },
+				{"854x480_30fps_trueFps_trueResolution_trueBitrate","-i {videoPath} -c:v libvpx-vp9 -vf scale=640:360 -aspect 4:3 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K {outputPath}" },
+				{"640x360_60fps_trueFps_trueResolution_trueBitrate","-i {videoPath} -c:v libvpx-vp9 -vf scale=426:240 -aspect 16:9 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K {outputPath}" },
+				{"640x360_30fps_trueFps_trueResolution_trueBitrate","-i {videoPath} -c:v libvpx-vp9 -vf scale=426:240 -aspect 16:9 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K {outputPath}" },
+				#endregion
+		};
+		private static readonly Dictionary<string, string> FpsOnlyOption = new()
+		{ 
+				#region Chỉ nén fps
+				{"1920x1080_60fps_trueFps_falseResolution_falseBitrate","-i {videoPath} -c:v libvpx-vp9 -r 30 -preset ultrafast -af volume=0.5 -b:a 64K {outputPath}" },
+				{"1920x1080_30fps_trueFps_falseResolution_falseBitrate","-i {videoPath} -c:v libvpx-vp9 -r 24 -preset ultrafast -af volume=0.5 -b:a 64K {outputPath}" },
+				{"1280x720_60fps_trueFps_falseResolution_falseBitrate","-i {videoPath} -c:v libvpx-vp9 -r 30 -preset ultrafast -af volume=0.5 -b:a 64K {outputPath}" },
+				{"1280x720_30fps_trueFps_falseResolution_falseBitrate","-i {videoPath} -c:v libvpx-vp9 -r 24 -preset ultrafast -af volume=0.5 -b:a 64K {outputPath}" },
+				{"854x480_60fps_trueFps_falseResolution_falseBitrate","-i {videoPath} -c:v libvpx-vp9 -r 30 -preset ultrafast -af volume=0.5 -b:a 64K {outputPath}" },
+				{"854x480_30fps_trueFps_falseResolution_falseBitrate","-i {videoPath} -c:v libvpx-vp9 -r 24 -preset ultrafast -af volume=0.5 -b:a 64K {outputPath}" },
+				{"640x360_60fps_trueFps_falseResolution_falseBitrate","-i {videoPath} -c:v libvpx-vp9 -r 30 -preset ultrafast -af volume=0.5 -b:a 64K {outputPath}" },
+				{"640x360_30fps_trueFps_falseResolution_falseBitrate","-i {videoPath} -c:v libvpx-vp9 -r 24 -preset ultrafast -af volume=0.5 -b:a 64K {outputPath}" },
+				#endregion
+		};
+		private static readonly Dictionary<string, string> ResolutionOnlyOption = new() { 
+				#region Chỉ nén resolution
+				{"1920x1080_60fps_falseFps_trueResolution_falseBitrate","-i {videoPath} -c:v libvpx-vp9 -vf scale=1280:720 -aspect 16:9 -preset ultrafast -af volume=0.5 -b:a 64K {outputPath}" },
+				{"1920x1080_30fps_falseFps_trueResolution_falseBitrate","-i {videoPath} -c:v libvpx-vp9 -vf scale=1280:720 -aspect 16:9 -preset ultrafast -af volume=0.5 -b:a 64K {outputPath}" },
+				{"1280x720_60fps_falseFps_trueResolution_falseBitrate","-i {videoPath} -c:v libvpx-vp9 -vf scale=854:480 -aspect 16:9 -preset ultrafast -af volume=0.5 -b:a 64K {outputPath}" },
+				{"1280x720_30fps_falseFps_trueResolution_falseBitrate","-i {videoPath} -c:v libvpx-vp9 -vf scale=854:480 -aspect 16:9 -preset ultrafast -af volume=0.5 -b:a 64K {outputPath}" },
+				{"854x480_60fps_falseFps_trueResolution_falseBitrate","-i {videoPath} -c:v libvpx-vp9 -vf scale=640:360 -aspect 4:3 -preset ultrafast -af volume=0.5 -b:a 64K {outputPath}" },
+				{"854x480_30fps_falseFps_trueResolution_falseBitrate","-i {videoPath} -c:v libvpx-vp9 -vf scale=640:360 -aspect 4:3 -preset ultrafast -af volume=0.5 -b:a 64K {outputPath}" },
+				{"640x360_60fps_falseFps_trueResolution_falseBitrate","-i {videoPath} -c:v libvpx-vp9 -vf scale=426:240 -aspect 4:3 -preset ultrafast -af volume=0.5 -b:a 64K {outputPath}" },
+				{"640x360_30fps_falseFps_trueResolution_falseBitrate","-i {videoPath} -c:v libvpx-vp9 -vf scale=426:240 -aspect 4:3 -preset ultrafast -af volume=0.5 -b:a 64K {outputPath}" },
+				#endregion
+		};
+		private static readonly Dictionary<string, string> BitrateOnlyOption = new()
+		{
+				#region Chỉ nén bitrate video
+				{"1920x1080_60fps_falseFps_falseResolution_trueBitrate","-i {videoPath} -c:v libvpx-vp9 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M {outputPath}" },
+				{"1920x1080_30fps_falseFps_falseResolution_trueBitrate","-i {videoPath} -c:v libvpx-vp9 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M {outputPath}" },
+				{"1280x720_60fps_falseFps_falseResolution_trueBitrate","-i {videoPath} -c:v libvpx-vp9 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M {outputPath}" },
+				{"1280x720_30fps_falseFps_falseResolution_trueBitrate","-i {videoPath} -c:v libvpx-vp9 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M {outputPath}" },
+				{"854x480_60fps_falseFps_falseResolution_trueBitrate","-i {videoPath} -c:v libvpx-vp9 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M {outputPath}" },
+				{"854x480_30fps_falseFps_falseResolution_trueBitrate","-i {videoPath} -c:v libvpx-vp9 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M {outputPath}" },
+				{"640x360_60fps_falseFps_falseResolution_trueBitrate","-i {videoPath} -c:v libvpx-vp9 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M {outputPath}" },
+				{"640x360_30fps_falseFps_falseResolution_trueBitrate","-i {videoPath} -c:v libvpx-vp9 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M {outputPath}" },
+				#endregion
+		};
 
-        /// <summary>
-        /// Định dạng lại fps
-        /// </summary>
-        /// <param name="fpsString"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        private int ParseFps(string fpsString)
-        {
-            var parts = fpsString.Split('/');
-            if (parts.Length == 2 && int.TryParse(parts[0], out int numerator) && int.TryParse(parts[1], out int denominator))
-            {
-                return numerator / denominator;
-            }
-            throw new Exception("Invalid FPS format.");
-        }
+		/// <summary>
+		/// Chọn option: nén video.
+		/// </summary>
+		/// <param name="options"></param>
+		/// <param name="videoPath"></param>
+		/// <param name="fileNameOutput"></param>
+		/// <returns></returns>
+		/// <exception cref="ArgumentException"></exception>  
+		private static string GetOption(string videoPath, string outputPath, string resolution, string fps, bool isFps, bool isResolution, bool isBitrate)
+		{
+			string root = "/Medias/Videos/";
+			string key = $"{resolution}_{fps}_{(isFps ? "true" : "false")}Fps_{(isResolution ? "true" : "false")}Resolution_{(isBitrate ? "true" : "false")}Bitrate";
 
-        /// <summary>
-        /// Chọn option: nén video.
-        /// </summary>
-        /// <param name="options"></param>
-        /// <param name="videoPath"></param>
-        /// <param name="fileNameOutput"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>  
-        public string GetOption(string videoPath, string videoOutput, int width, int height, int fps, int bitrate)
-        {
-            string root = "/Medias/Videos/";
-            if (width == 1920 && height == 1080 && fps == 60 && bitrate >= 4500 && bitrate <= 9000)         // Áp dụng cho video 1920x1080 60fps, bitrate 4500-9000
-            {
-                return $"-i {videoPath} -c:v libvpx-vp9 -vf scale=1280:720 -aspect 16:9 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K {"wwwroot" + root + videoOutput}";
-            }
-            else if (width == 1920 && height == 1080 && fps == 30 && bitrate >= 3000 && bitrate <= 6000)    // Áp dụng cho video 1920x1080 60fps, bitrate 4500-9000
-            {
-                return $"-i {videoPath} -c:v libvpx-vp9 -vf scale=1280:720 -aspect 16:9 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K {"wwwroot" + root + videoOutput}";
-            }
-            else if (width == 1280 && height == 720 && fps == 60 && bitrate >= 2250 && bitrate <= 6000)     // Áp dụng cho video 1280x720 60fps, bitrate 2250-6000
-            {
-                return $"-i {videoPath} -c:v libvpx-vp9 -vf scale=854:480 -aspect 16:9 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K {"wwwroot" + root + videoOutput}";
-            }
-            else if (width == 1280 && height == 720 && fps == 30 && bitrate >= 1500 && bitrate <= 4000)     // Áp dụng cho video 1280x720 30fps, bitrate 1500-4000
-            {
-                return $"-i {videoPath} -c:v libvpx-vp9 -vf scale=854:480 -aspect 16:9 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K {"wwwroot" + root + videoOutput}";
-            }
-            else if (width == 854 && height == 480 && fps == 60 && bitrate >= 1200 && bitrate <= 2500)     // Áp dụng cho vid0eo 854:480 60fps, bitrate 1200-2500
-            {
-                return $"-i {videoPath} -c:v libvpx-vp9 -vf scale=640:360 -aspect 4:3 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K {"wwwroot" + root + videoOutput}";
-            }
-            else if (width == 854 && height == 480 && fps == 30 && bitrate >= 700 && bitrate <= 1500)     // Áp dụng cho video 854:480 30fps, bitrate 700-1500
-            {
-                return $"-i {videoPath} -c:v libvpx-vp9 -vf scale=640:360 -aspect 4:3 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K {"wwwroot" + root + videoOutput}";
-            }
-            else if (width == 640 && height == 360 && fps == 60 && bitrate >= 800 && bitrate <= 1800)     // Áp dụng cho video 640:360 60fps, bitrate 800-1800
-            {
-                return $"-i {videoPath} -c:v libvpx-vp9 -vf scale=426:240 -aspect 16:9 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K {"wwwroot" + root + videoOutput}";
-            }
-            else if (width == 640 && height == 360 && fps == 30 && bitrate >= 500 && bitrate <= 1200)     // Áp dụng cho video 640:360 30fps, bitrate 500-1200
-            {
-                return $"-i {videoPath} -c:v libvpx-vp9 -vf scale=426:240 -aspect 16:9 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K {"wwwroot" + root + videoOutput}";
-            }
-            else if (width < height)
-            {
-                return $"-i {videoPath} -c:v libvpx-vp9 -vf pad=width=ih*16/9:height=ih:x=(ow-iw)/2:y=0 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K {"wwwroot" + root + videoOutput}";
-            }
-            else
-            {
-                return $"-i {videoPath} -c:v libvpx-vp9 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K  {"wwwroot" + root + videoOutput}";
-            }
-        }
+			if (isFps && !isResolution && !isBitrate && FpsOnlyOption.TryGetValue(key, out string? fpsCommand))
+			{
+				return fpsCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", "wwwroot" + root + outputPath);
+			}
 
-        /// <summary>
-        /// Nén video
-        /// </summary>
-        /// <param name="videoPath"></param>
-        /// <param name="fileNameOutput"></param>
-        /// <returns></returns>
-        public string OptimizeVideo(string videoPath, string fileNameOutput)
-        {
-            if (videoPath is not null)
-            {
-                GetVideoInfo(videoPath, out int width, out int height, out int fps, out int bitrate);
-                string arg = GetOption(videoPath, fileNameOutput, width, height, fps, bitrate);
-                ExecuteCommand(arg);
-            }
-            return fileNameOutput;
-        }
+			if (isResolution && !isFps && !isBitrate && ResolutionOnlyOption.TryGetValue(key, out string? resolutionCommand))
+			{
+				return resolutionCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", "wwwroot" + root + outputPath);
+			}
 
-        /// <summary>
-        /// Upload và nén media
-        /// </summary>
-        /// <param name="mediaDto"></param>
-        /// <returns></returns>
-        /// <exception cref="FileNotFoundException"></exception>
-        public bool CompressMedia(string fileNameInput)
-        {
-            // Kiểm tra người dùng có đăng nhập chưa
-            string cookie = _authService.GetLoginInfoFromCookie();
-            string cookieDecode = _authService.DecodeFromBase64(cookie);
-            LoginDto userInfo = JsonConvert.DeserializeObject<LoginDto>(cookieDecode);
-            User? user = _context.users.FirstOrDefault(u => u.Username == userInfo.Username);
+			if (isBitrate && !isFps && !isResolution && BitrateOnlyOption.TryGetValue(key, out string? bitrateCommand))
+			{
+				return bitrateCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", "wwwroot" + root + outputPath);
+			}
 
+			if (CompressFullOption.TryGetValue(key, out string? fullCommand))
+			{
+				return fullCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", "wwwroot" + root + outputPath);
+			}
 
+			return $"-i {videoPath} -c:v libvpx-vp9 -preset ultrafast {"wwwroot" + root + outputPath}";
+		}
 
-            string root = "/Medias/Videos/";
-            // fileNameInput: 7a87788f-f8a7-45b1-83b4-b2e2eb9bc30b&test.mp4
+		/// <summary>
+		/// Nén video
+		/// </summary>
+		/// <param name="videoPath"></param>
+		/// <param name="fileNameOutput"></param>
+		/// <returns></returns>
+		public string OptimizeVideo(string videoPath, string fileNameOutput, MediaDto mediaDto)
+		{
+			if (videoPath is not null)
+			{
+				GetVideoInfo(videoPath, out int width, out int height, out int fps, out int bitrate);
+				string resolution = $"{width}x{height}";
+				string fpsString = $"{fps}fps";
+				string arg = GetOption(videoPath, fileNameOutput, resolution, fpsString, mediaDto.IsFps, mediaDto.IsResolution, mediaDto.IsBitrateVideo);
+				ExecuteCommand(arg);
+			}
+			return fileNameOutput;
+		}
 
-            string rootPathFileNameInput = root + fileNameInput;
-            IFileInfo fileInputInfo = _fileProvider.GetFileInfo(rootPathFileNameInput);
-            string? rootPathFileInputInfo = fileInputInfo.PhysicalPath;
-            Media deleteMedia = _context.medias.FirstOrDefault(m => m.MediaPath == rootPathFileInputInfo)!;
+		/// <summary>
+		/// Nén media
+		/// </summary>
+		/// <param name="mediaDto"></param>
+		/// <returns></returns>
+		/// <exception cref="FileNotFoundException"></exception>
+		public bool CompressMedia(string fileNameInput, MediaDto mediaDto)
+		{
+			// Kiểm tra người dùng có đăng nhập chưa
+			string cookie = _authService.GetLoginInfoFromCookie();
+			string cookieDecode = _authService.DecodeFromBase64(cookie);
+			LoginDto userInfo = JsonConvert.DeserializeObject<LoginDto>(cookieDecode);
+			User? user = _context.users.FirstOrDefault(u => u.Username == userInfo.Username);
 
-            deleteMedia.Status = "Compressing";
+			string root = "/Medias/Videos/";
+			// fileNameInput: 7a87788f-f8a7-45b1-83b4-b2e2eb9bc30b&test.mp4
 
-            string fileNameOutput = Guid.NewGuid() + "&" + fileNameInput!.Split('&')[1];
-            string result = OptimizeVideo("wwwroot" + rootPathFileNameInput, fileNameOutput);
+			string rootPathFileNameInput = root + fileNameInput;
+			IFileInfo fileInputInfo = _fileProvider.GetFileInfo(rootPathFileNameInput);
+			string? rootPathFileInputInfo = fileInputInfo.PhysicalPath;
+			Media deleteMedia = _context.medias.FirstOrDefault(m => m.MediaPath == rootPathFileInputInfo)!;
 
+			deleteMedia.Status = "Compressing...";
+			_context.Update(deleteMedia);
+			_context.SaveChanges();
 
+			string fileNameOutput = Guid.NewGuid() + "&" + fileNameInput!.Split('&')[1];
 
-            string srcOptimized = root + result;
-            IFileInfo fileInfoOptimized = _fileProvider.GetFileInfo(srcOptimized);
-            string? rootPathOptimized = fileInfoOptimized.PhysicalPath!;
-            if (rootPathOptimized != null)
-            {
-                // Xóa ảnh gốc sau khi optimize
-                File.Delete("wwwroot" + rootPathFileNameInput);
+			//string result = OptimizeVideo("wwwroot" + rootPathFileNameInput, fileNameOutput);
 
-                _context.medias.Remove(deleteMedia);
+			// Bộ đếm thời gian nensn vidoe
+			Stopwatch stopwatch = new Stopwatch();
+			stopwatch.Start();
+			string result = OptimizeVideo("wwwroot" + rootPathFileNameInput, fileNameOutput, mediaDto);
+			stopwatch.Stop();
 
-                if (!File.Exists(rootPathOptimized))
-                {
-                    throw new FileNotFoundException("File optimized does not exist.", rootPathOptimized);
-                }
+			TimeSpan timeSpan = stopwatch.Elapsed;
 
-                // Lấy độ dài file của ảnh đã optimize
-                FileInfo fileInfo = new FileInfo(rootPathOptimized);
-                long fileLength = fileInfo.Length;
+			string elapsedTime = string.Format("{0:00}:{1:00}:{2:00}", timeSpan.Hours, timeSpan.Minutes, timeSpan.Seconds);
 
-                // Xác định loại media
-                string mediaType = fileInfo.Extension.ToLower() switch
-                {
-                    ".mp4" => "video/mp4",
-                    ".jpg" => "image/jpg",
-                    ".jpeg" => "image/jpeg",
-                    ".png" => "image/png",
-                    ".gif" => "image/gif",
-                    _ => "unknown"
-                };
+			string srcOptimized = root + result;
+			IFileInfo fileInfoOptimized = _fileProvider.GetFileInfo(srcOptimized);
+			string? rootPathOptimized = fileInfoOptimized.PhysicalPath!;
+			if (rootPathOptimized != null)
+			{
+				// Xóa ảnh gốc sau khi optimize
+				File.Delete("wwwroot" + rootPathFileNameInput);
 
-                Media media = new Media()
-                {
-                    MediaPath = rootPathOptimized,
-                    CreatedDate = DateTime.Now,
-                    Size = fileLength,
-                    Status = "Compressed",
-                    MediaType = mediaType,
-                    UserId = user!.UserId
-                };
+				_context.medias.Remove(deleteMedia);
 
-                _context.medias.Add(media);
-                _context.SaveChanges();
-                return true;
-            }
-            return false;
-        }
+				if (!File.Exists(rootPathOptimized))
+				{
+					throw new FileNotFoundException("File optimized does not exist.", rootPathOptimized);
+				}
 
-        /// <summary>
-        /// Upload media
-        /// </summary>
-        /// <param name="mediaDto"></param>
-        /// <returns></returns>
-        public string UploadMedia(MediaDto mediaDto)
-        {
-            // Kiểm tra người dùng có đăng nhập chưa
-            string cookie = _authService.GetLoginInfoFromCookie();
-            string cookieDecode = _authService.DecodeFromBase64(cookie);
-            LoginDto userInfo = JsonConvert.DeserializeObject<LoginDto>(cookieDecode);
-            User? user = _context.users.FirstOrDefault(u => u.Username == userInfo.Username);
+				// Lấy độ dài file của ảnh đã optimize
+				FileInfo fileInfo = new FileInfo(rootPathOptimized);
+				long fileLength = fileInfo.Length;
 
-            // Kiểm tra xem người dùng có upload file media lên chưa
-            if (mediaDto.Media != null)
-            {
-                string root = "/Medias/Videos/";
-                string imageName = $"{Guid.NewGuid() + "&" + mediaDto.Media.FileName}";
-                //string imageName = $"{mediaDto.Media.FileName}";
+				// Xác định loại media
+				string mediaType = fileInfo.Extension.ToLower() switch
+				{
+					".mp4" => "video/mp4",
+					".jpg" => "image/jpg",
+					".jpeg" => "image/jpeg",
+					".png" => "image/png",
+					".gif" => "image/gif",
+					_ => "unknown"
+				};
 
-                if (!Directory.Exists("wwwroot" + root))
-                {
-                    Directory.CreateDirectory("wwwroot" + root);
-                }
+				Media media = new Media()
+				{
+					MediaPath = rootPathOptimized,
+					CreatedDate = DateTime.Now,
+					Size = fileLength,
+					Status = "Compressed",
+					CompressDuration = elapsedTime,
+					MediaType = mediaType,
+					UserId = user!.UserId
+				};
 
-                string src = root + imageName;
-                IFileInfo imgInfo = _fileProvider.GetFileInfo(src);
-                string? rootPath = imgInfo.PhysicalPath!;
+				_context.medias.Add(media);
+				_context.SaveChanges();
+				return true;
+			}
+			return false;
+		}
 
-                if (string.IsNullOrEmpty(rootPath)) return null!;
-                using (var fileStream = new FileStream(rootPath, FileMode.Create))
-                {
-                    mediaDto.Media.CopyTo(fileStream);
-                }
+		/// <summary>
+		/// Upload media
+		/// </summary>
+		/// <param name="mediaDto"></param>
+		/// <returns></returns>
+		public string UploadMedia(MediaDto mediaDto)
+		{
+			// Kiểm tra người dùng có đăng nhập chưa
+			string cookie = _authService.GetLoginInfoFromCookie();
+			string cookieDecode = _authService.DecodeFromBase64(cookie);
+			LoginDto userInfo = JsonConvert.DeserializeObject<LoginDto>(cookieDecode);
+			User? user = _context.users.FirstOrDefault(u => u.Username == userInfo.Username);
 
-                if (string.IsNullOrEmpty(rootPath)) return null!;
+			// Kiểm tra xem người dùng có upload file media lên chưa
+			if (mediaDto.Media != null)
+			{
+				string root = "/Medias/Videos/";
+				string imageName = $"{Guid.NewGuid() + "&" + mediaDto.Media.FileName}";
+				//string imageName = $"{mediaDto.Media.FileName}";
 
-                if (rootPath != null)
-                {
-                    // Lấy độ dài file của ảnh đã optimize
-                    FileInfo fileInfo = new FileInfo(rootPath);
-                    long fileLength = fileInfo.Length;
+				if (!Directory.Exists("wwwroot" + root))
+				{
+					Directory.CreateDirectory("wwwroot" + root);
+				}
 
-                    // Xác định loại media
-                    string mediaType = fileInfo.Extension.ToLower() switch
-                    {
-                        ".mp4" => "video/mp4",
-                        ".jpg" => "image/jpg",
-                        ".jpeg" => "image/jpeg",
-                        ".png" => "image/png",
-                        ".gif" => "image/gif",
-                        _ => "unknown"
-                    };
+				string src = root + imageName;
+				IFileInfo imgInfo = _fileProvider.GetFileInfo(src);
+				string? rootPath = imgInfo.PhysicalPath!;
 
-                    Media media = new Media()
-                    {
-                        MediaPath = rootPath,
-                        CreatedDate = DateTime.Now,
-                        Size = fileLength,
-                        Status = "Original",
-                        MediaType = mediaType,
-                        UserId = user!.UserId
-                    };
+				if (string.IsNullOrEmpty(rootPath)) return null!;
+				using (var fileStream = new FileStream(rootPath, FileMode.Create))
+				{
+					mediaDto.Media.CopyTo(fileStream);
+				}
 
-                    _context.medias.Add(media);
-                    _context.SaveChanges();
-                    return "wwwroot" + src;
-                }
-                return null!;
-            }
-            return null!;
-        }
+				if (string.IsNullOrEmpty(rootPath)) return null!;
 
-       
-    }
+				if (rootPath != null)
+				{
+					// Lấy độ dài file của ảnh đã optimize
+					FileInfo fileInfo = new FileInfo(rootPath);
+					long fileLength = fileInfo.Length;
+
+					// Xác định loại media
+					string mediaType = fileInfo.Extension.ToLower() switch
+					{
+						".mp4" => "video/mp4",
+						".jpg" => "image/jpg",
+						".jpeg" => "image/jpeg",
+						".png" => "image/png",
+						".gif" => "image/gif",
+						_ => "unknown"
+					};
+
+					Media media = new Media()
+					{
+						MediaPath = rootPath,
+						CreatedDate = DateTime.Now,
+						Size = fileLength,
+						Status = "Original",
+						MediaType = mediaType,
+						UserId = user!.UserId
+					};
+
+					_context.medias.Add(media);
+					_context.SaveChanges();
+					return "wwwroot" + src;
+				}
+				return null!;
+			}
+			return null!;
+		}
+
+		/// <summary>
+		/// Xóa video
+		/// </summary>
+		/// <param name="mediaId"></param>
+		/// <returns></returns>
+		public async Task<bool> DeleteMedia(int mediaId)
+		{
+			string splitString = @"D:\BÀI TẬP\ASP.NET\CompressMedia\CompressMedia\";
+			Media? media = await _context.medias.SingleOrDefaultAsync(m => m.MediaId == mediaId);
+			if (media == null) return false;
+			string mediaPath = media.MediaPath!.Replace(splitString, "");
+			File.Delete(mediaPath);
+			_context.medias.Remove(media);
+			await _context.SaveChangesAsync();
+			return true;
+		}
+	}
 }

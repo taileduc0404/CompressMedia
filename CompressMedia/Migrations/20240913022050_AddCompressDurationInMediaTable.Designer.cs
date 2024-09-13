@@ -4,6 +4,7 @@ using CompressMedia.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CompressMedia.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240913022050_AddCompressDurationInMediaTable")]
+    partial class AddCompressDurationInMediaTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,8 +33,8 @@ namespace CompressMedia.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MediaId"));
 
-                    b.Property<string>("CompressDuration")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<TimeSpan>("CompressDuration")
+                        .HasColumnType("time");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
@@ -114,7 +117,7 @@ namespace CompressMedia.Migrations
                             Email = "taileduc0404@gmail.com",
                             FirstName = "Tai",
                             LastName = "Le Duc",
-                            PasswordHash = "$2a$11$BclYbjz.V2NW6BGHdCPtQ.zQ1EJGsBqSN9W3u.90lRmzLzf0AuAyW",
+                            PasswordHash = "$2a$11$TfZzcPCYfP2OPr4ZwbRIN.WjVD0/YI8SDHygfoUfZRKXSsUhMD0sG",
                             Username = "Le Duc Tai"
                         },
                         new
@@ -123,7 +126,7 @@ namespace CompressMedia.Migrations
                             Email = "admin@gmail.com",
                             FirstName = "Super",
                             LastName = "Admin",
-                            PasswordHash = "$2a$11$8hDpG5jd8Nd2j7BBfzo6DODr0TCL9gFxNeioKgO/Rs87SfE/q6zgG",
+                            PasswordHash = "$2a$11$75YkyW6yPlTryug5g5qH0uJGCVwckUoNwckg1AZS1snacJdKLXJyi",
                             Username = "admin"
                         });
                 });

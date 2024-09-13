@@ -13,8 +13,9 @@
 	<thead>
 		<tr>
 			<th>Name</th>
-			<th>Size</th>
+			<th>Size(Mb)</th>
 			<th>Status</th>
+			<th>Compress Duration</th>
 			<th>Action</th>
 		</tr>
 	</thead>
@@ -23,12 +24,13 @@
 		{
 			<tr>
 				<th>@media.MediaPath</th>
-				<td>@media.Size Mb</td>
+				<td>@media.Size</td>
 				<td>@media.Status</td>
+				<td>@media.CompressDuration</td>
 				@* <td>200</td> *@
 				<td>
-					<button type="submit" class="btn btn-outline-danger">Delete</button>
-					@if (media.Status == "Compressed")
+					<a asp-controller="Media" asp-action="DeleteMedia" asp-route-mediaId="@media.MediaId" class="btn btn-outline-danger">Delete</a>
+					@if (media.Status == "Compressed" || media.Status == "Compressing...")
 					{
 						<button type="button" class="btn btn-outline-primary" disabled>Compress</button>
 					}
@@ -41,3 +43,9 @@
 		}
 	</tbody>
 </table>
+
+<script>
+	setTimeout(function () {
+		location.reload();
+	}, 10000);
+</script>
