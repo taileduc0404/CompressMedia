@@ -17,7 +17,7 @@
 			<th>Name</th>
 			<th>Size(Mb)</th>
 			<th>Status</th>
-			<th>Compress Duration</th>
+			<th>Compress Time</th>
 			<th>Action</th>
 		</tr>
 	</thead>
@@ -27,7 +27,20 @@
 			<tr>
 				<th>@media.MediaPath</th>
 				<td>@media.Size</td>
-				<td>@media.Status</td>
+				<td>
+					@if (media.Status == "Compressing...")
+					{
+						<h6 style="color:blue">@media.Status</h6>
+					}
+					@if (media.Status == "Compressed")
+					{
+						<h6 style="color:green">@media.Status</h6>
+					}
+					@if (media.Status == "Original")
+					{
+						<h6 style="color:dimgrey">@media.Status</h6>
+					}
+				</td>
 				<td>@media.CompressDuration</td>
 				@* <td>200</td> *@
 				<td>

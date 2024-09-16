@@ -14,10 +14,11 @@ else
 {
 	<form asp-action="CompressVideo" asp-controller="Media" method="post" enctype="multipart/form-data">
 		<input type="hidden" name="mediaId" value="@Model.MediaId" />
+		<h6 style="color:red"> Warning! You should choose 2 or more options for better compression. Choosing only 1 option can reduce the quality and increase the size of your video</h6>
 		<div class="form-check">
 			<input asp-for="IsFps" class="form-check-input" type="checkbox" id="IsFps" checked>
 			<label class="form-check-label" for="IsFps">
-				Fps (Compressing only fps can reduce the quality and increase the capacity of your video)
+				Fps
 			</label>
 		</div>
 		<div class="form-check">

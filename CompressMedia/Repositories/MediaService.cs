@@ -172,47 +172,61 @@ namespace CompressMedia.Repositories
 		/// <param name="fileNameOutput"></param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException"></exception>  
-		private static string GetOption(string videoPath, string outputPath, string resolution, string fps, bool isFps, bool isResolution, bool isBitrate)
+		private static string GetOption(string videoPath, string outputPath, int width, int height, string fps, bool isFps, bool isResolution, bool isBitrate)
 		{
 			string root = "/Medias/Videos/";
+			string resolution = $"{width}x{height}";
 			string key = $"{resolution}_{fps}_{(isFps ? "true" : "false")}Fps_{(isResolution ? "true" : "false")}Resolution_{(isBitrate ? "true" : "false")}Bitrate";
 
+			// Trường hợp chỉ nén fps
 			if (isFps && !isResolution && !isBitrate && CompressOption.FpsOnlyOption.TryGetValue(key, out string? fpsCommand))
 			{
 				return fpsCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", "wwwroot" + root + outputPath);
 			}
 
+			// Trường hợp chỉ nén resolution
 			if (isResolution && !isFps && !isBitrate && CompressOption.ResolutionOnlyOption.TryGetValue(key, out string? resolutionCommand))
 			{
 				return resolutionCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", "wwwroot" + root + outputPath);
 			}
 
+			// Trwufogn hợp chỉ nén bitrate
 			if (isBitrate && !isFps && !isResolution && CompressOption.BitrateOnlyOption.TryGetValue(key, out string? bitrateCommand))
 			{
 				return bitrateCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", "wwwroot" + root + outputPath);
 			}
 
+			// Trường hợp nén fps và resolution
 			if (!isBitrate && isFps && isResolution && CompressOption.FpsVsResolutionOption.TryGetValue(key, out string? fpsVsResolutionCommand))
 			{
 				return fpsVsResolutionCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", "wwwroot" + root + outputPath);
 			}
 
+			// Trường hợp nén fps và bitrate
 			if (isBitrate && isFps && !isResolution && CompressOption.FpsVsBitrateOption.TryGetValue(key, out string? fpsVsBitrateCommand))
 			{
 				return fpsVsBitrateCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", "wwwroot" + root + outputPath);
 			}
 
+			// Trường hợp nén resolution và bitrate
 			if (isBitrate && !isFps && isResolution && CompressOption.ResolutionVsBitrateOption.TryGetValue(key, out string? resolutionVsBitrateCommand))
 			{
 				return resolutionVsBitrateCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", "wwwroot" + root + outputPath);
 			}
 
+			if (width < height)
+			{
+				return $"-i {videoPath} -c:v libvpx-vp9 -vf pad=width=ih*16/9:height=ih:x=(ow-iw)/2:y=0 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K {"wwwroot" + root + outputPath}";
+			}
+
+			// Trường hợp nén full option
 			if (CompressOption.CompressFullOption.TryGetValue(key, out string? fullCommand))
 			{
 				return fullCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", "wwwroot" + root + outputPath);
 			}
 
-			return $"-i {videoPath} -c:v libvpx-vp9 -preset ultrafast {"wwwroot" + root + outputPath}";
+			// Truonwggf hợp người dùng không chọn option nào
+			return $"-i {videoPath} -c:v libvpx-vp9 -preset ultrafast -af volume=0.5 -b:a 64K {"wwwroot" + root + outputPath}";
 		}
 
 		/// <summary>
@@ -226,9 +240,9 @@ namespace CompressMedia.Repositories
 			if (videoPath is not null)
 			{
 				GetVideoInfo(videoPath, out int width, out int height, out int fps, out int bitrate);
-				string resolution = $"{width}x{height}";
+		
 				string fpsString = $"{fps}fps";
-				string arg = GetOption(videoPath, fileNameOutput, resolution, fpsString, mediaDto.IsFps, mediaDto.IsResolution, mediaDto.IsBitrateVideo);
+				string arg = GetOption(videoPath, fileNameOutput, width, height, fpsString, mediaDto.IsFps, mediaDto.IsResolution, mediaDto.IsBitrateVideo);
 				ExecuteCommand(arg);
 			}
 			return fileNameOutput;
