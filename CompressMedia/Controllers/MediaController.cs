@@ -154,8 +154,6 @@ namespace CustomAuth.Controllers
 				return RedirectToAction("Index");
 			}
 
-
-
 			_notyfService.Success("Video is being compressed. You can continue working while we process the video.");
 
 			string splitString = @"D:\BÀI TẬP\ASP.NET\CompressMedia\CompressMedia\wwwroot\Medias\Videos\";

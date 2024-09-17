@@ -1,4 +1,5 @@
 using AspNetCoreHero.ToastNotification;
+using CompressMedia.BlobStorage;
 using CompressMedia.Data;
 using CompressMedia.Repositories;
 using CompressMedia.Repositories.Interfaces;
@@ -20,9 +21,19 @@ namespace CompressMedia
 				options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 			});
 
+			builder.Services.AddSingleton<BlobStorageDbContext>(provider =>
+			{
+				var configuration = builder.Configuration;
+				string connectionString = configuration["BlobDatabase:ConnectionString"]!;
+				string databaseName = configuration["BlobDatabase:DatabaseName"]!;
+				return new BlobStorageDbContext(connectionString, databaseName);
+			});
+
 			builder.Services.AddScoped<IAuthService, AuthService>();
 			builder.Services.AddScoped<IUserService, UserService>();
 			builder.Services.AddScoped<IMediaService, MediaService>();
+			builder.Services.AddScoped<IBlobContainerService, BlobContainerService>();
+			builder.Services.AddScoped<IBlobService, BlobService>();
 
 			builder.Services.AddNotyf(config =>
 			{

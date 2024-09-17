@@ -4,6 +4,7 @@ using CompressMedia.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CompressMedia.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240917081755_updatedb")]
+    partial class updatedb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,9 +33,6 @@ namespace CompressMedia.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BlobId"));
 
-                    b.Property<int?>("BlobContainerContainerId")
-                        .HasColumnType("int");
-
                     b.Property<int?>("BlobDataId")
                         .HasColumnType("int");
 
@@ -47,8 +47,6 @@ namespace CompressMedia.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("BlobId");
-
-                    b.HasIndex("BlobContainerContainerId");
 
                     b.HasIndex("ContainerId");
 
@@ -191,7 +189,7 @@ namespace CompressMedia.Migrations
                             Email = "taileduc0404@gmail.com",
                             FirstName = "Tai",
                             LastName = "Le Duc",
-                            PasswordHash = "$2a$11$d/rxdJ60AfrmdE1.Jdbhx.gVbUiqQvIknlU5FLBahZpTIppCxOJYy",
+                            PasswordHash = "$2a$11$cQbb.QcPoOlXwEsf3b4dae01mXiXzjysvKT4J3HqHSq.c13xRLoAC",
                             Username = "Le Duc Tai"
                         },
                         new
@@ -200,7 +198,7 @@ namespace CompressMedia.Migrations
                             Email = "admin@gmail.com",
                             FirstName = "Super",
                             LastName = "Admin",
-                            PasswordHash = "$2a$11$UpIY1miP3GBhTD0akjcSeuWGAoKb0zxnv09SukitTOl.A65Q5zbSC",
+                            PasswordHash = "$2a$11$Ia6GfJgfly9FEnix6giESO/UhL6SStdtCWjYjUaFEDgp5ve9yPMyC",
                             Username = "admin"
                         });
                 });
@@ -222,17 +220,11 @@ namespace CompressMedia.Migrations
 
             modelBuilder.Entity("CompressMedia.Models.Blob", b =>
                 {
-                    b.HasOne("CompressMedia.Models.BlobContainer", "BlobContainer")
-                        .WithMany()
-                        .HasForeignKey("BlobContainerContainerId");
-
                     b.HasOne("CompressMedia.Models.BlobContainer", "Container")
                         .WithMany("Blobs")
                         .HasForeignKey("ContainerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("BlobContainer");
 
                     b.Navigation("Container");
                 });

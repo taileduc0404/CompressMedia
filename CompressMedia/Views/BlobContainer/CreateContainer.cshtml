@@ -1,0 +1,18 @@
+﻿@model CompressMedia.DTOs.ContainerDto
+
+@{
+    ViewBag.Title = "Create New Container";
+    Layout = "_Layout";
+}
+
+<h2>Create New Container</h2>
+
+<form asp-action="CreateContainer" method="post">
+    <input type="hidden" asp-for="UserId"/>
+    <div class="form-group">
+        <label asp-for="ContainerName"></label>
+        <input asp-for="ContainerName" class="form-control" />
+        <span asp-validation-for="ContainerName" class="text-danger" />
+    </div>
+    <button type="submit" class="btn btn-primary">Create</button>
+</form>

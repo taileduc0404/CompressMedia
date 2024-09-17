@@ -26,5 +26,6 @@ namespace CompressMedia.Models
 		//public Guid ActivevationCode { get; set; }
 		public virtual ICollection<Role>? Roles { get; set; }
 		public virtual ICollection<Media>? Medias { get; set; }
+		public virtual ICollection<BlobContainer>? Containers { get; set; }
 	}
 }

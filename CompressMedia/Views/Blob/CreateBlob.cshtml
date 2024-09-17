@@ -1,0 +1,22 @@
+﻿@model CompressMedia.DTOs.BlobDto
+
+@{
+	ViewData["Title"] = "Create Blob";
+}
+
+<h2>Create Blob</h2>
+<form asp-action="CreateBlob" asp-controller="Blob" method="post" enctype="multipart/form-data">
+	<input type="hidden" asp-for="ContainerId" />
+	@* <div class="form-group">
+		<label asp-for="BlobName"></label>
+		<input asp-for="BlobName" class="form-control" />
+		<span asp-validation-for="BlobName" class="text-danger"></span>
+	</div> *@
+	<div class="form-group">
+		<label asp-for="Data"></label>
+		<input type="file" asp-for="Data" class="form-control" aria-describedby="inputGroupFileAddon04" aria-label="Upload">
+		<span asp-validation-for="Data" class="text-danger"></span>
+	</div>
+	<button type="submit" class="btn btn-primary">Submit</button>
+</form>
+

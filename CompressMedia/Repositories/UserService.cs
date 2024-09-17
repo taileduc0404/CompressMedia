@@ -110,7 +110,7 @@ namespace CompressMedia.Repositories
 				return null!;
 			}
 
-			User userInfo = await _context.users.SingleOrDefaultAsync(u => u.Username == user.Username);
+			User? userInfo = await _context.users.SingleOrDefaultAsync(u => u.Username == user.Username);
 
 			if (userInfo == null)
 			{
