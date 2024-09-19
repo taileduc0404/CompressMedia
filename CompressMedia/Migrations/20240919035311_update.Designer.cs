@@ -4,6 +4,7 @@ using CompressMedia.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CompressMedia.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240919035311_update")]
+    partial class update
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -47,9 +50,6 @@ namespace CompressMedia.Migrations
 
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("UploadDate")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("BlobId");
 
@@ -172,7 +172,7 @@ namespace CompressMedia.Migrations
                             Email = "taileduc0404@gmail.com",
                             FirstName = "Tai",
                             LastName = "Le Duc",
-                            PasswordHash = "$2a$11$380.uYfUJHEVbZ6IU5VtTOegde49xpBHiTXxBIb5s2Q7J.1E1znKG",
+                            PasswordHash = "$2a$11$Wd192kx6qxePFubAHh1yWuVaetpcR3/GAX.psK5JMGAVEbysBelLi",
                             Username = "Le Duc Tai"
                         },
                         new
@@ -181,7 +181,7 @@ namespace CompressMedia.Migrations
                             Email = "admin@gmail.com",
                             FirstName = "Super",
                             LastName = "Admin",
-                            PasswordHash = "$2a$11$Lb/FiG1ey9Nn6L4KD1vUReZwtsoRKChREEXmoomAJSXpXHnFDmWnq",
+                            PasswordHash = "$2a$11$xAv4DWWPdQEWLvanlWu7CubNgWaMIkRl0ydYbwDTzCVzU8VTMmWxi",
                             Username = "admin"
                         });
                 });

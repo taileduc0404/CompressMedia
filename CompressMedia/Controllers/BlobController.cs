@@ -49,6 +49,8 @@ namespace CompressMedia.Controllers
 				BlobId = blob.BlobId,
 				BlobName = blob.BlobName,
 				ContentType = blob.ContentType,
+				Size = Math.Round(blob.Size / 1048576.0, 1),
+				CompressionTime = blob.CompressionTime,
 				Status = blob.Status!,
 				ContainerId = containerId,
 			});

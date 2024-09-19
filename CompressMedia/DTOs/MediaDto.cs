@@ -11,8 +11,6 @@
 		public string? CompressDuration { get; set; }
 		public string? UserId { get; set; }
 		public double Size { get; set; }
-
-		// Compress Options:
 		public bool IsFps { get; set; }
 		public bool IsResolution { get; set; }
 		public bool IsBitrateVideo { get; set; }

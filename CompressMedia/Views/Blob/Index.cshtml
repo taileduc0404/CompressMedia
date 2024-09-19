@@ -5,13 +5,15 @@
 	Layout = "_Layout";
 }
 
-<h2>Medias</h2>
+<h2>Blobs</h2>
 <table class="table table-bordered mt-4">
 	<thead>
 		<tr>
 			<th>Blob Id</th>
 			<th>Name</th>
 			<th>Content Type</th>
+			<th>Size(Mb)</th>
+			<th>Compression Time</th>
 			<th>Status</th>
 			<th>Action</th>
 		</tr>
@@ -23,6 +25,8 @@
 				<th>@media.BlobId</th>
 				<th>@media.BlobName</th>
 				<th>@media.ContentType</th>
+				<th>@media.Size</th>
+				<th>@media.CompressionTime</th>
 				<th>@media.Status</th>
 				<td>
 					<a asp-controller="Blob" asp-action="Download" asp-route-blobName="@media.BlobName" class="btn btn-outline-success">Download</a>
