@@ -1,0 +1,41 @@
+﻿@model CompressMedia.DTOs.BlobDto
+
+@{
+	ViewData["Title"] = "Compress";
+}
+
+<h2>Compress</h2>
+
+@if (Model == null)
+{
+	<p>Model is null. Please check the data passed to this view.</p>
+}
+else
+{
+	<form asp-action="Compress" asp-controller="Blob" method="post" enctype="multipart/form-data">
+		<input type="hidden" name="BlobName" value="@Model.BlobName" />
+		<input type="hidden" name="BlobId" value="@Model.BlobId" />
+		<input type="hidden" name="ContentType" value="@Model.ContentType" />
+		<input type="hidden" name="ContainerId" value="@Model.ContainerId" />
+		<h6 style="color:red"> Warning! You should choose 2 or more options for better compression. Choosing only 1 option can reduce the quality and increase the size of your video</h6>
+		<div class="form-check">
+			<input asp-for="IsFps" class="form-check-input" type="checkbox" id="IsFps" checked>
+			<label class="form-check-label" for="IsFps">
+				Fps
+			</label>
+		</div>
+		<div class="form-check">
+			<input asp-for="IsResolution" class="form-check-input" type="checkbox" id="IsResolution" checked>
+			<label class="form-check-label" for="IsResolution">
+				Resolution
+			</label>
+		</div>
+		<div class="form-check">
+			<input asp-for="IsBitrateVideo" class="form-check-input" type="checkbox" id="IsBitrateVideo" checked>
+			<label class="form-check-label" for="IsBitrateVideo">
+				Bitrate Video
+			</label>
+		</div>
+		<button class="btn btn-outline-secondary" type="submit">Compress</button>
+	</form>
+}

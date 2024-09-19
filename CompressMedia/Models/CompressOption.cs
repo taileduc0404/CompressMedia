@@ -52,7 +52,7 @@
 				{"640x360_30fps_falseFps_trueResolution_falseBitrate","-i {videoPath} -c:v libvpx-vp9 -vf scale=426:240 -aspect 4:3 -preset ultrafast -af volume=0.5 -b:a 64K {outputPath}" },
 				#endregion
 		};
-	
+
 		/// <summary>
 		/// Chỉ nensn bitrate video
 		/// </summary>

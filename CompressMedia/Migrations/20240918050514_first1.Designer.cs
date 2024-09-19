@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CompressMedia.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240911075611_AddStatusPropertyInMediaTable")]
-    partial class AddStatusPropertyInMediaTable
+    [Migration("20240918050514_first1")]
+    partial class first1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,6 +25,54 @@ namespace CompressMedia.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("CompressMedia.Models.Blob", b =>
+                {
+                    b.Property<string>("BlobId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("BlobName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ContainerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("BlobId");
+
+                    b.HasIndex("ContainerId");
+
+                    b.ToTable("blobs");
+                });
+
+            modelBuilder.Entity("CompressMedia.Models.BlobContainer", b =>
+                {
+                    b.Property<int>("ContainerId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ContainerId"));
+
+                    b.Property<string>("ContainerName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("ContainerId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("blobContainers");
+                });
+
             modelBuilder.Entity("CompressMedia.Models.Media", b =>
                 {
                     b.Property<int>("MediaId")
@@ -32,6 +80,9 @@ namespace CompressMedia.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MediaId"));
+
+                    b.Property<string>("CompressDuration")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
@@ -114,7 +165,7 @@ namespace CompressMedia.Migrations
                             Email = "taileduc0404@gmail.com",
                             FirstName = "Tai",
                             LastName = "Le Duc",
-                            PasswordHash = "$2a$11$IVu6/UC8sap/jFo3lAC47OAIONijxo2CfGCK7fdpvn2/OkolV29HO",
+                            PasswordHash = "$2a$11$9MRJ8J4vO3Sq0ppPwUtjp.klnb1wMmmCyesZidL.uWgdCT2gOQ10O",
                             Username = "Le Duc Tai"
                         },
                         new
@@ -123,7 +174,7 @@ namespace CompressMedia.Migrations
                             Email = "admin@gmail.com",
                             FirstName = "Super",
                             LastName = "Admin",
-                            PasswordHash = "$2a$11$mdlw6kAluve/QMQBHjnyRerd4QgcNyFCm7J3gDXH4mvnGr5lihbDK",
+                            PasswordHash = "$2a$11$Uc7hQeM1c2LVeRe8qPLBQ.22Pyw0SweaBKkLd9Ijm.vSN.VQ12sYa",
                             Username = "admin"
                         });
                 });
@@ -141,6 +192,27 @@ namespace CompressMedia.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("UserRole");
+                });
+
+            modelBuilder.Entity("CompressMedia.Models.Blob", b =>
+                {
+                    b.HasOne("CompressMedia.Models.BlobContainer", "BlobContainer")
+                        .WithMany("Blobs")
+                        .HasForeignKey("ContainerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BlobContainer");
+                });
+
+            modelBuilder.Entity("CompressMedia.Models.BlobContainer", b =>
+                {
+                    b.HasOne("CompressMedia.Models.User", "User")
+                        .WithMany("Containers")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CompressMedia.Models.Media", b =>
@@ -168,8 +240,15 @@ namespace CompressMedia.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("CompressMedia.Models.BlobContainer", b =>
+                {
+                    b.Navigation("Blobs");
+                });
+
             modelBuilder.Entity("CompressMedia.Models.User", b =>
                 {
+                    b.Navigation("Containers");
+
                     b.Navigation("Medias");
                 });
 #pragma warning restore 612, 618

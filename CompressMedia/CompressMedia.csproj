@@ -17,9 +17,11 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="MongoDB.Driver" Version="2.28.0" />
+    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.28.0" />
   </ItemGroup>
   
   <ItemGroup>
+    <Folder Include="Migrations\" />
     <Folder Include="wwwroot\Medias\Videos\" />
   </ItemGroup>
 

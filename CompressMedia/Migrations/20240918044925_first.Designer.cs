@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CompressMedia.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240917094632_updatedb1")]
-    partial class updatedb1
+    [Migration("20240918044925_first")]
+    partial class first
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,17 +27,8 @@ namespace CompressMedia.Migrations
 
             modelBuilder.Entity("CompressMedia.Models.Blob", b =>
                 {
-                    b.Property<int>("BlobId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BlobId"));
-
-                    b.Property<int?>("BlobContainerContainerId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("BlobDataId")
-                        .HasColumnType("int");
+                    b.Property<string>("BlobId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("BlobName")
                         .IsRequired()
@@ -46,12 +37,14 @@ namespace CompressMedia.Migrations
                     b.Property<int>("ContainerId")
                         .HasColumnType("int");
 
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("BlobId");
-
-                    b.HasIndex("BlobContainerContainerId");
 
                     b.HasIndex("ContainerId");
 
@@ -83,7 +76,13 @@ namespace CompressMedia.Migrations
             modelBuilder.Entity("CompressMedia.Models.BlobMetadata", b =>
                 {
                     b.Property<int>("MetadataId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MetadataId"));
+
+                    b.Property<string>("BlobId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("BlobName")
                         .HasColumnType("nvarchar(max)");
@@ -98,6 +97,8 @@ namespace CompressMedia.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("MetadataId");
+
+                    b.HasIndex("BlobId");
 
                     b.ToTable("blobMetadata");
                 });
@@ -194,7 +195,7 @@ namespace CompressMedia.Migrations
                             Email = "taileduc0404@gmail.com",
                             FirstName = "Tai",
                             LastName = "Le Duc",
-                            PasswordHash = "$2a$11$d/rxdJ60AfrmdE1.Jdbhx.gVbUiqQvIknlU5FLBahZpTIppCxOJYy",
+                            PasswordHash = "$2a$11$1eKucI97vZQI5.KMb0WbKeMwjjBLX7tOvp8cLGyMgwxuP8jZlWEeu",
                             Username = "Le Duc Tai"
                         },
                         new
@@ -203,7 +204,7 @@ namespace CompressMedia.Migrations
                             Email = "admin@gmail.com",
                             FirstName = "Super",
                             LastName = "Admin",
-                            PasswordHash = "$2a$11$UpIY1miP3GBhTD0akjcSeuWGAoKb0zxnv09SukitTOl.A65Q5zbSC",
+                            PasswordHash = "$2a$11$Roh6A0eqTCfkdQ6bAJ024OYWQcIkamesSEW7XyL/lz7znZhNrdEbu",
                             Username = "admin"
                         });
                 });
@@ -226,18 +227,12 @@ namespace CompressMedia.Migrations
             modelBuilder.Entity("CompressMedia.Models.Blob", b =>
                 {
                     b.HasOne("CompressMedia.Models.BlobContainer", "BlobContainer")
-                        .WithMany()
-                        .HasForeignKey("BlobContainerContainerId");
-
-                    b.HasOne("CompressMedia.Models.BlobContainer", "Container")
                         .WithMany("Blobs")
                         .HasForeignKey("ContainerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("BlobContainer");
-
-                    b.Navigation("Container");
                 });
 
             modelBuilder.Entity("CompressMedia.Models.BlobContainer", b =>
@@ -253,10 +248,8 @@ namespace CompressMedia.Migrations
             modelBuilder.Entity("CompressMedia.Models.BlobMetadata", b =>
                 {
                     b.HasOne("CompressMedia.Models.Blob", "Blob")
-                        .WithOne("MetaData")
-                        .HasForeignKey("CompressMedia.Models.BlobMetadata", "MetadataId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany()
+                        .HasForeignKey("BlobId");
 
                     b.Navigation("Blob");
                 });
@@ -284,11 +277,6 @@ namespace CompressMedia.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("CompressMedia.Models.Blob", b =>
-                {
-                    b.Navigation("MetaData");
                 });
 
             modelBuilder.Entity("CompressMedia.Models.BlobContainer", b =>

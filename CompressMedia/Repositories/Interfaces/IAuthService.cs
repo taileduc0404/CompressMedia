@@ -1,6 +1,5 @@
 ﻿
 using CompressMedia.DTOs;
-using CompressMedia.Models;
 
 namespace CompressMedia.Repositories.Interfaces
 {
@@ -14,6 +13,6 @@ namespace CompressMedia.Repositories.Interfaces
 		void SetLoginCookie(string base64LoginInfo);
 		string GetLoginInfoFromCookie();
 		string DecodeFromBase64(string base64EncodedData);
-	
+
 	}
 }

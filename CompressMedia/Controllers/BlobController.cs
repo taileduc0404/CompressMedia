@@ -46,7 +46,11 @@ namespace CompressMedia.Controllers
 
 			IEnumerable<BlobDto> blobDto = blobList.Select(blob => new BlobDto
 			{
+				BlobId = blob.BlobId,
 				BlobName = blob.BlobName,
+				ContentType = blob.ContentType,
+				Status = blob.Status!,
+				ContainerId = containerId,
 			});
 
 			return View(blobDto);
@@ -90,9 +94,123 @@ namespace CompressMedia.Controllers
 			else if (result == true)
 			{
 				_notyfService.Success("Upload video successfully.");
-				return RedirectToAction("Index");
+				return RedirectToAction("Index", new { containerId = blobDto.ContainerId });
 			}
-			return RedirectToAction("Index", "Blob", new { blobDto.ContainerId});
+			return RedirectToAction("Index", new { containerId = blobDto.ContainerId });
+		}
+
+		[HttpGet]
+		public async Task<IActionResult> Download(string blobName)
+		{
+			IEnumerable<User> users = await _userService.GetAllUser();
+			if (users == null)
+			{
+				return RedirectToAction("AccessDenied");
+			}
+
+			BlobDto blobDto = new BlobDto
+			{
+				BlobName = blobName,
+			};
+			return View(blobDto);
+		}
+
+		[HttpPost]
+		public async Task<IActionResult> Download(BlobDto blobDto)
+		{
+			bool result = await _blobService.GetBlobContentAsync(blobDto);
+			if (result == false)
+			{
+				_notyfService.Error("Download failed.");
+				return RedirectToAction("Index", new { containerId = blobDto.ContainerId });
+			}
+
+			_notyfService.Success("Download successfully");
+			return RedirectToAction("Index", new { containerId = blobDto.ContainerId });
+		}
+
+		[HttpGet]
+		public async Task<IActionResult> Compress(string blobId, string blobName, string contentType, int containerId)
+		{
+			IEnumerable<User> users = await _userService.GetAllUser();
+			if (users == null)
+			{
+				return RedirectToAction("AccessDenied");
+			}
+
+			BlobDto blobDto = new BlobDto
+			{
+				BlobId = blobId,
+				BlobName = blobName,
+				ContentType = contentType,
+				ContainerId = containerId
+			};
+			return View(blobDto);
+		}
+
+		[HttpPost]
+		public async Task<IActionResult> Compress(BlobDto blobDto)
+		{
+			if (blobDto != null)
+			{
+				bool result = await _blobService.CompressMedia(blobDto);
+				if (!result)
+				{
+					_notyfService.Error("Compress failed.");
+					return RedirectToAction("Index", new { containerId = blobDto.ContainerId });
+				}
+			}
+			else
+			{
+				_notyfService.Warning("Model is null.");
+				return RedirectToAction("Index", new { containerId = blobDto!.ContainerId });
+			}
+
+			_notyfService.Success("Compress successfully");
+			return RedirectToAction("Index", new { containerId = blobDto.ContainerId });
+
+		}
+
+		[HttpGet]
+		[ActionName("DeleteBlob")]
+		public async Task<IActionResult> DeleteBlobGet(string blobId, int containerId)
+		{
+			IEnumerable<User> users = await _userService.GetAllUser();
+			if (users == null)
+			{
+				return RedirectToAction("AccessDenied");
+			}
+
+			BlobDto blobDto = new BlobDto
+			{
+				BlobId = blobId,
+				ContainerId = containerId
+			};
+			return View(blobDto);
+		}
+
+		[HttpPost]
+		[ActionName("DeleteBlob")]
+		public async Task<IActionResult> DeleteBlobPost(string blobId, int containerId)
+		{
+			if (blobId != null)
+			{
+				bool result = await _blobService.DeleteBlobAsync(blobId);
+				if (!result)
+				{
+					_notyfService.Error("Compress failed.");
+					return RedirectToAction("Index", new { containerId = containerId });
+				}
+			}
+			else
+			{
+				_notyfService.Warning("Model is null.");
+				return RedirectToAction("Index", new { containerId = containerId });
+			}
+
+			_notyfService.Success("Compress successfully");
+			return RedirectToAction("Index", new { containerId = containerId });
+
 		}
 
 	}

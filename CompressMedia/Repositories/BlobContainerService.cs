@@ -18,6 +18,11 @@ namespace CompressMedia.Repositories
 			_authService = authService;
 		}
 
+		/// <summary>
+		/// Xóa container
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns></returns>
 		public async Task<bool> DeleteAsync(string name)
 		{
 			BlobContainer? container = await _context.blobContainers.FirstOrDefaultAsync(c => c.ContainerName == name);
@@ -31,22 +36,33 @@ namespace CompressMedia.Repositories
 			return true;
 		}
 
+		/// <summary>
+		/// Get danh sách container
+		/// </summary>
+		/// <returns></returns>
 		public async Task<ICollection<BlobContainer>> GetAsync()
 		{
 			string cookie = _authService.GetLoginInfoFromCookie();
 			string cookieDecode = _authService.DecodeFromBase64(cookie);
 			LoginDto userInfo = JsonConvert.DeserializeObject<LoginDto>(cookieDecode);
 			User? user = await _context.users.FirstOrDefaultAsync(u => u.Username == userInfo.Username);
+
 			return await _context.blobContainers.Where(c => c.UserId == user!.UserId).ToListAsync();
 
 		}
 
+		/// <summary>
+		/// Lưu container
+		/// </summary>
+		/// <param name="containerDto"></param>
+		/// <returns></returns>
 		public async Task<bool> SaveAsync(ContainerDto containerDto)
 		{
 			string cookie = _authService.GetLoginInfoFromCookie();
 			string cookieDecode = _authService.DecodeFromBase64(cookie);
 			LoginDto userInfo = JsonConvert.DeserializeObject<LoginDto>(cookieDecode);
 			User? user = await _context.users.FirstOrDefaultAsync(u => u.Username == userInfo.Username);
+
 			if (userInfo == null)
 			{
 				return false;
