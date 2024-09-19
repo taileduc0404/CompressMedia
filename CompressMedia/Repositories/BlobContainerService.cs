@@ -3,6 +3,9 @@ using CompressMedia.DTOs;
 using CompressMedia.Models;
 using CompressMedia.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using MongoDB.Driver.GridFS;
 using Newtonsoft.Json;
 
 namespace CompressMedia.Repositories
@@ -11,11 +14,15 @@ namespace CompressMedia.Repositories
     {
         private readonly ApplicationDbContext _context;
         private readonly IAuthService _authService;
+        private readonly BlobStorageDbContext _storageContext;
+        private readonly IGridFSBucket _gridFSBucket;
 
-        public BlobContainerService(ApplicationDbContext context, IAuthService authService)
+        public BlobContainerService(ApplicationDbContext context, IAuthService authService, BlobStorageDbContext storageContext)
         {
             _context = context;
             _authService = authService;
+            _storageContext = storageContext;
+            _gridFSBucket = new GridFSBucket(_storageContext._mongoDatabase);
         }
 
         /// <summary>
@@ -26,12 +33,23 @@ namespace CompressMedia.Repositories
         public async Task<bool> DeleteAsync(int containerId)
         {
             BlobContainer? container = await _context.blobContainers.FirstOrDefaultAsync(c => c.ContainerId == containerId);
-            //List<Blob> blob = await _context.blobs.Where(x => x.ContainerId == containerId).ToListAsync();
+            List<Blob> blobs = await _context.blobs.Where(x => x.ContainerId == containerId).ToListAsync();
             if (container is null)
             {
                 return false;
             }
 
+            foreach (var blob in blobs)
+            {
+                var oldFileId = new ObjectId(blob.BlobId);
+                var filter = Builders<GridFSFileInfo<ObjectId>>.Filter.Eq(x => x.Id, oldFileId);
+                var oldFileEntry = await _gridFSBucket.FindAsync(filter);
+                var oldFile = oldFileEntry.FirstOrDefault();
+                if (oldFile != null)
+                {
+                    await _gridFSBucket.DeleteAsync(oldFile.Id);
+                }
+            }
 
             _context.blobContainers.Remove(container);
             await _context.SaveChangesAsync();
