@@ -1,0 +1,19 @@
+﻿@model CompressMedia.DTOs.ContainerDto
+
+@{
+    ViewData["Title"] = "Delete Container";
+}
+
+<h2>Delete Container</h2>
+
+@if (Model == null)
+{
+    <p>Model is null. Please check the data passed to this view.</p>
+}
+else
+{
+    <form asp-action="DeleteContainer" asp-controller="BlobContainer" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="containerId" value="@Model.ContainerId" />
+        <button class="btn btn-outline-secondary" type="submit">Delete</button>
+    </form>
+}

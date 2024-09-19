@@ -42,7 +42,6 @@
 					}
 				</td>
 				<td>@media.CompressDuration</td>
-				@* <td>200</td> *@
 				<td>
 					<a asp-controller="Media" asp-action="DeleteMedia" asp-route-mediaId="@media.MediaId" class="btn btn-outline-danger">Delete</a>
 					@if (media.Status == "Compressed" || media.Status == "Compressing...")

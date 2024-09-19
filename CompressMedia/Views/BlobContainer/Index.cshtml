@@ -28,7 +28,7 @@
 					<td>
 						<a asp-controller="Blob" asp-action="CreateBlob" asp-route-containerId="@container.ContainerId" class="btn btn-outline-primary"> Add New Blob</a>
 						<a asp-controller="Blob" asp-action="Index" asp-route-containerId="@container.ContainerId" class="btn btn-outline-secondary">Detail</a>
-						<a asp-controller="BlobContainer" asp-action="CreateContainer" class="btn btn-outline-danger">Delete</a>
+						<a asp-controller="BlobContainer" asp-action="DeleteContainer" asp-route-containerId="@container.ContainerId" class="btn btn-outline-danger">Delete</a>
 					</td>
 				</tr>
 			}

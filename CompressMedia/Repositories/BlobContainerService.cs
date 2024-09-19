@@ -7,75 +7,77 @@ using Newtonsoft.Json;
 
 namespace CompressMedia.Repositories
 {
-	public class BlobContainerService : IBlobContainerService
-	{
-		private readonly ApplicationDbContext _context;
-		private readonly IAuthService _authService;
+    public class BlobContainerService : IBlobContainerService
+    {
+        private readonly ApplicationDbContext _context;
+        private readonly IAuthService _authService;
 
-		public BlobContainerService(ApplicationDbContext context, IAuthService authService)
-		{
-			_context = context;
-			_authService = authService;
-		}
+        public BlobContainerService(ApplicationDbContext context, IAuthService authService)
+        {
+            _context = context;
+            _authService = authService;
+        }
 
-		/// <summary>
-		/// Xóa container
-		/// </summary>
-		/// <param name="name"></param>
-		/// <returns></returns>
-		public async Task<bool> DeleteAsync(string name)
-		{
-			BlobContainer? container = await _context.blobContainers.FirstOrDefaultAsync(c => c.ContainerName == name);
-			if (container is null)
-			{
-				return false;
-			}
+        /// <summary>
+        /// Xóa container
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public async Task<bool> DeleteAsync(int containerId)
+        {
+            BlobContainer? container = await _context.blobContainers.FirstOrDefaultAsync(c => c.ContainerId == containerId);
+            //List<Blob> blob = await _context.blobs.Where(x => x.ContainerId == containerId).ToListAsync();
+            if (container is null)
+            {
+                return false;
+            }
 
-			_context.blobContainers.Remove(container);
-			await _context.SaveChangesAsync();
-			return true;
-		}
 
-		/// <summary>
-		/// Get danh sách container
-		/// </summary>
-		/// <returns></returns>
-		public async Task<ICollection<BlobContainer>> GetAsync()
-		{
-			string cookie = _authService.GetLoginInfoFromCookie();
-			string cookieDecode = _authService.DecodeFromBase64(cookie);
-			LoginDto userInfo = JsonConvert.DeserializeObject<LoginDto>(cookieDecode);
-			User? user = await _context.users.FirstOrDefaultAsync(u => u.Username == userInfo.Username);
+            _context.blobContainers.Remove(container);
+            await _context.SaveChangesAsync();
+            return true;
+        }
 
-			return await _context.blobContainers.Where(c => c.UserId == user!.UserId).ToListAsync();
+        /// <summary>
+        /// Get danh sách container
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ICollection<BlobContainer>> GetAsync()
+        {
+            string cookie = _authService.GetLoginInfoFromCookie();
+            string cookieDecode = _authService.DecodeFromBase64(cookie);
+            LoginDto userInfo = JsonConvert.DeserializeObject<LoginDto>(cookieDecode);
+            User? user = await _context.users.FirstOrDefaultAsync(u => u.Username == userInfo.Username);
 
-		}
+            return await _context.blobContainers.Where(c => c.UserId == user!.UserId).ToListAsync();
 
-		/// <summary>
-		/// Lưu container
-		/// </summary>
-		/// <param name="containerDto"></param>
-		/// <returns></returns>
-		public async Task<bool> SaveAsync(ContainerDto containerDto)
-		{
-			string cookie = _authService.GetLoginInfoFromCookie();
-			string cookieDecode = _authService.DecodeFromBase64(cookie);
-			LoginDto userInfo = JsonConvert.DeserializeObject<LoginDto>(cookieDecode);
-			User? user = await _context.users.FirstOrDefaultAsync(u => u.Username == userInfo.Username);
+        }
 
-			if (userInfo == null)
-			{
-				return false;
-			}
-			BlobContainer container = new BlobContainer
-			{
-				ContainerName = containerDto.ContainerName!,
-				UserId = user!.UserId,
-			};
+        /// <summary>
+        /// Lưu container
+        /// </summary>
+        /// <param name="containerDto"></param>
+        /// <returns></returns>
+        public async Task<bool> SaveAsync(ContainerDto containerDto)
+        {
+            string cookie = _authService.GetLoginInfoFromCookie();
+            string cookieDecode = _authService.DecodeFromBase64(cookie);
+            LoginDto userInfo = JsonConvert.DeserializeObject<LoginDto>(cookieDecode);
+            User? user = await _context.users.FirstOrDefaultAsync(u => u.Username == userInfo.Username);
 
-			await _context.blobContainers.AddAsync(container);
-			await _context.SaveChangesAsync();
-			return true;
-		}
-	}
+            if (userInfo == null)
+            {
+                return false;
+            }
+            BlobContainer container = new BlobContainer
+            {
+                ContainerName = containerDto.ContainerName!,
+                UserId = user!.UserId,
+            };
+
+            await _context.blobContainers.AddAsync(container);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+    }
 }
