@@ -429,7 +429,6 @@ namespace CompressMedia.Repositories
             File.Delete(fileTempOutput);
 
             //Xóa video cũ trong sql server
-
             if (oldBlob != null)
             {
                 _context.blobs.Remove(oldBlob);
@@ -448,6 +447,6 @@ namespace CompressMedia.Repositories
 
             return true;
         }
-
     }
+
 }
