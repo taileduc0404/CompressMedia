@@ -39,7 +39,7 @@
 						<a asp-controller="Blob" asp-action="Compress" asp-route-blobId="@media.BlobId" asp-route-blobName="@media.BlobName" asp-route-contentType="@media.ContentType" asp-route-containerId="@media.ContainerId" class="btn btn-outline-primary">Compress</a>
 					}
 					<a asp-controller="Blob" asp-action="DeleteBlob" asp-route-blobId="@media.BlobId" asp-route-containerId="@media.ContainerId" class="btn btn-outline-danger">Delete</a>
-					<a asp-controller="Blob" asp-action="GetVideo" asp-route-blobId="@media.BlobId" asp-route-containerId="@media.ContainerId" class="btn btn-outline-info">View Video</a>
+					<a asp-controller="Blob" asp-action="ViewBlob" asp-route-blobName="@media.BlobName" class="btn btn-outline-info">View Blob</a>
 				</td>
 			</tr>
 		}

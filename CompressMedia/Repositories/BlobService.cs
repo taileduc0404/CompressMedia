@@ -454,19 +454,27 @@ namespace CompressMedia.Repositories
         /// <param name="blobId"></param>
         /// <returns></returns>
         /// <exception cref="FileNotFoundException"></exception>
-        public async Task<Stream> GetVideoStreamAsync(string blobId)
+        public async Task<Stream> GetBlobStreamAsync(string blobName)
         {
-            var filter = Builders<GridFSFileInfo<ObjectId>>.Filter.Eq(x => x.Id, new ObjectId(blobId));
+            var filter = Builders<GridFSFileInfo<ObjectId>>.Filter.Eq("filename", blobName);
             var searchResult = await _gridFSBucket.FindAsync(filter);
-            var fileEntyr = searchResult.FirstOrDefault();
-            if (fileEntyr != null)
-            {
-                var stream = await _gridFSBucket.OpenDownloadStreamAsync(fileEntyr.Id);
-                return stream;
-            }
+            var fileEntry = searchResult.FirstOrDefault();
 
-            throw new FileNotFoundException("Video not found");
+            if (fileEntry != null)
+            {
+                var contentType = fileEntry.Metadata.GetValue("contentType").AsString;
+
+                if (contentType.StartsWith("video/") || contentType.StartsWith("image/"))
+                {
+                    var stream = await _gridFSBucket.OpenDownloadStreamAsync(fileEntry.Id);
+                    return stream;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Unsupported content type");
+                }
+            }
+            throw new FileNotFoundException("Blob not found");
         }
     }
-
 }
