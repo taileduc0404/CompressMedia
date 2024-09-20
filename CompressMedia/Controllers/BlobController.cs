@@ -215,5 +215,18 @@ namespace CompressMedia.Controllers
 
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetVideo(string blobId)
+        {
+            try
+            {
+                var stream = await _blobService.GetVideoStreamAsync(blobId);
+                return File(stream, "video/mp4"); 
+            }
+            catch (FileNotFoundException)
+            {
+                return NotFound();
+            }
+        }
     }
 }

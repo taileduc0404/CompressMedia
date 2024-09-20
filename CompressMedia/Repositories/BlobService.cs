@@ -350,7 +350,7 @@ namespace CompressMedia.Repositories
         }
 
         /// <summary>
-        /// Nén video
+        /// Xử lý nén
         /// </summary>
         /// <param name="videoPath"></param>
         /// <param name="fileNameOutput"></param>
@@ -446,6 +446,26 @@ namespace CompressMedia.Repositories
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Đọc dữ liệu blob vào stream để hiển thị vidoe lên
+        /// </summary>
+        /// <param name="blobId"></param>
+        /// <returns></returns>
+        /// <exception cref="FileNotFoundException"></exception>
+        public async Task<Stream> GetVideoStreamAsync(string blobId)
+        {
+            var filter = Builders<GridFSFileInfo<ObjectId>>.Filter.Eq(x => x.Id, new ObjectId(blobId));
+            var searchResult = await _gridFSBucket.FindAsync(filter);
+            var fileEntyr = searchResult.FirstOrDefault();
+            if (fileEntyr != null)
+            {
+                var stream = await _gridFSBucket.OpenDownloadStreamAsync(fileEntyr.Id);
+                return stream;
+            }
+
+            throw new FileNotFoundException("Video not found");
         }
     }
 

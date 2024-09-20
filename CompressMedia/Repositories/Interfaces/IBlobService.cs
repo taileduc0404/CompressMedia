@@ -13,5 +13,6 @@ namespace CompressMedia.Repositories.Interfaces
         Task UpdateBlobAsync();
         Task<bool> CompressMedia(BlobDto blobDto);
         Task<string> OptimizeVideo(BlobDto blobDto);
+        Task<Stream> GetVideoStreamAsync(string blobId);
     }
 }

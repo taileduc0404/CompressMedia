@@ -1,0 +1,12 @@
+﻿@model CompressMedia.DTOs.BlobDto
+
+@{
+    ViewData["Title"] = "View Video";
+}
+
+<h2>View Video</h2>
+
+<video width="600" controls>
+    <source src="{blobId}" type="video/mp4">
+    Your browser does not support the video tag.
+</video>
