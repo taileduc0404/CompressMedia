@@ -26,7 +26,6 @@ namespace CompressMedia.Controllers
 			return View(dto.Username, dto.Password);
 		}
 
-
 		[HttpGet]
 		public IActionResult Register()
 		{
@@ -71,7 +70,7 @@ namespace CompressMedia.Controllers
 			if (!ModelState.IsValid || string.IsNullOrWhiteSpace(dto.Username) || string.IsNullOrWhiteSpace(dto.Password))
 			{
 				_notyfService.Warning("Please enter both username and password.");
-				return View(dto); 
+				return View(dto);
 			}
 
 			var qrCode = await _authService.Login(dto);
@@ -80,12 +79,11 @@ namespace CompressMedia.Controllers
 			{
 				case "u":
 					_notyfService.Error("Invalid username.");
-					return View(new LoginDto()); 
+					return View(new LoginDto());
 				case "p":
 					_notyfService.Error("Invalid password.");
-					return View(new LoginDto()); 
+					return View(new LoginDto());
 				default:
-					_notyfService.Success("Logged in successfully.");
 					dto.QrCode = qrCode;
 					return View("Index", dto);
 			}
