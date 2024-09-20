@@ -3,8 +3,12 @@ using CompressMedia.Data;
 using CompressMedia.DTOs;
 using CompressMedia.Models;
 using CompressMedia.Repositories.Interfaces;
+using Google.Authenticator;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using QRCoder;
+using System.Net;
+using System.Text;
 
 namespace CompressMedia.Services
 {
@@ -12,11 +16,13 @@ namespace CompressMedia.Services
     {
         private readonly ApplicationDbContext _applicationDbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IConfiguration _configuration;
 
-        public AuthService(ApplicationDbContext applicationDbContext, IHttpContextAccessor httpContextAccessor)
+        public AuthService(ApplicationDbContext applicationDbContext, IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
         {
             _applicationDbContext = applicationDbContext;
             _httpContextAccessor = httpContextAccessor;
+            _configuration = configuration;
         }
 
         private HttpContext HttpContext => _httpContextAccessor.HttpContext!;
@@ -41,12 +47,8 @@ namespace CompressMedia.Services
                 {
                     return "p";
                 }
-
-                string userInfoEncode = EncodeStringToBase64(dto);
-
-                SetLoginCookie(userInfoEncode);
-
-                return "success";
+                string qrCode = await GenerateQrCode(dto);
+                return qrCode;
             }
             catch (Exception ex)
             {
@@ -104,7 +106,8 @@ namespace CompressMedia.Services
                     FirstName = dto.FirstName,
                     LastName = dto.LastName,
                     Email = dto.Email,
-                    PasswordHash = PasswordHasher.HashPassword(dto.Password!).ToString()
+                    PasswordHash = PasswordHasher.HashPassword(dto.Password!).ToString(),
+                    SecretKey = Guid.NewGuid().ToString()
                 };
 
                 _applicationDbContext.users.Add(user);
@@ -182,6 +185,46 @@ namespace CompressMedia.Services
         public void Logout()
         {
             HttpContext.Response.Cookies.Delete("LoginInfo");
+        }
+
+        /// <summary>
+        /// Tạo qr với thông tin người dùng 
+        /// </summary>
+        /// <param name="loginDto"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task<string> GenerateQrCode(LoginDto loginDto)
+        {
+            User? user = await _applicationDbContext.users.SingleOrDefaultAsync(u => u.Username == loginDto.Username);
+            if (user == null) throw new Exception("User not found");
+
+            string qrCodeData = $"User:{loginDto.Username}{user.SecretKey}";
+
+            byte[] secretByte = Encoding.UTF8.GetBytes(qrCodeData);
+
+            TwoFactorAuthenticator twoFacAuth = new();
+            var setupInfo = twoFacAuth.GenerateSetupCode(
+                "CompressMedia",
+                loginDto.Username,
+                secretByte,
+                3
+            );
+            HttpContext.Session.SetString("QrCodeData", qrCodeData);
+            return setupInfo.QrCodeSetupImageUrl;
+        }
+        public bool VerifyOtp(LoginDto loginDto)
+        {
+            TwoFactorAuthenticator twoFactorAuthenticator = new();
+            string? qrCodeData = HttpContext.Session.GetString("QrCodeData");
+            bool isValid = twoFactorAuthenticator.ValidateTwoFactorPIN(qrCodeData, loginDto.otpCode, TimeSpan.FromSeconds(30));
+            if (isValid)
+            {
+                string userInfoEncode = EncodeStringToBase64(loginDto);
+                SetLoginCookie(userInfoEncode);
+                HttpContext.Session.Remove("QrCodeData");
+                return true;
+            }
+            return false;
         }
     }
 }

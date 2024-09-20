@@ -20,6 +20,11 @@ namespace CompressMedia
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
 
+            builder.Services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromSeconds(30);
+            });
+
             builder.Services.AddSingleton<BlobStorageDbContext>(provider =>
             {
                 var configuration = builder.Configuration;
@@ -69,7 +74,14 @@ namespace CompressMedia
             }
 
             app.UseHttpsRedirection();
-            app.UseStaticFiles();
+
+            app.UseSession();
+
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(Path.GetTempPath()),
+                RequestPath = "/tempfiles"
+            });
 
             app.UseRouting();
 

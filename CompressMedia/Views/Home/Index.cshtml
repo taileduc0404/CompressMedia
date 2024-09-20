@@ -1,10 +1,32 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model CompressMedia.DTOs.LoginDto
 
-    
+@{
+	ViewData["Title"] = "Home Page";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome to Media Compression Tool</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+	<h1 class="display-4">Welcome to Media Compression Tool</h1>
+	<p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+
+
+	@if (Model != null && !string.IsNullOrWhiteSpace(Model.QrCode))
+	{
+		<h3>Scan the QR Code for Two-Factor Authentication</h3>
+		<img src="@Url.Content(Model.QrCode)" alt="QR Code" style="width:200px;height:200px;" />
+
+		<form asp-action="Verify" method="post">
+			<input type="hidden" asp-for="Username" />
+			<input type="hidden" asp-for="Password" />
+			<div class="form-group">
+				<label asp-for="otpCode"></label>
+				<input asp-for="otpCode" class="form-control" />
+				<span asp-validation-for="otpCode" class="text-danger"></span>
+			</div>
+			<button type="submit" class="btn btn-primary">Verify</button>
+		</form>
+	}
+	else
+	{
+		<h3>No Qr Code</h3>
+	}
 </div>

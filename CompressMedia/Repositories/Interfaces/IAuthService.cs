@@ -13,6 +13,8 @@ namespace CompressMedia.Repositories.Interfaces
         void SetLoginCookie(string base64LoginInfo);
         string GetLoginInfoFromCookie();
         string DecodeFromBase64(string base64EncodedData);
+        Task<string> GenerateQrCode(LoginDto loginDto);
+        bool VerifyOtp(LoginDto loginDto);
 
     }
 }

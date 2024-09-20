@@ -10,5 +10,7 @@ namespace CompressMedia.DTOs
 
         [Required(ErrorMessage = "Username is required")]
         public string? Password { get; set; }
+        public string? QrCode { get; set; }
+        public string? otpCode { get; set; }
     }
 }

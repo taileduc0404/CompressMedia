@@ -4,6 +4,7 @@ using CompressMedia.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CompressMedia.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240920082043_AddSecretKeyInUserTable")]
+    partial class AddSecretKeyInUserTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -135,28 +138,33 @@ namespace CompressMedia.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Email")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FirstName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LastName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PasswordHash")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SecretKey")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Username")
-                        .HasColumnType("nvarchar(450)");
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.HasKey("UserId");
 
                     b.HasIndex("Username")
-                        .IsUnique()
-                        .HasFilter("[Username] IS NOT NULL");
+                        .IsUnique();
 
                     b.ToTable("users");
 
@@ -167,7 +175,7 @@ namespace CompressMedia.Migrations
                             Email = "taileduc0404@gmail.com",
                             FirstName = "Tai",
                             LastName = "Le Duc",
-                            PasswordHash = "$2a$11$S0wyPocGUAY9fp4i5tKBMOVz5f.lk6gdD9nYHV4EaaiTgOjoqNRhq",
+                            PasswordHash = "$2a$11$eMAz8vvkofvzig2hQ2w5AOYwPXdAp6QxZ/1EqCGB2iYvYW2B7c09u",
                             Username = "Le Duc Tai"
                         },
                         new
@@ -176,7 +184,7 @@ namespace CompressMedia.Migrations
                             Email = "admin@gmail.com",
                             FirstName = "Super",
                             LastName = "Admin",
-                            PasswordHash = "$2a$11$FvLbtcR3iTgM2fWVpYElE.gp38M80BvWKz6oUtGhLsPxfVfhhc132",
+                            PasswordHash = "$2a$11$fGPAAOHg1JsPbw.YwfmN5eTc98q.odt5wbJCxZCwyr9loaQIzKmEe",
                             Username = "admin"
                         });
                 });
