@@ -45,7 +45,7 @@
 			return returnArray;
 		}
 
-		public static string ToString(byte[] input)
+		public static string ToString(byte[] input, bool removePadding = true)
 		{
 			if (input == null || input.Length == 0)
 			{
@@ -74,14 +74,20 @@
 				nextChar = (byte)((b << bitsRemaining) & 31);
 			}
 
-			//if we didn't end with a full char
 			if (arrayIndex != charCount)
 			{
 				returnArray[arrayIndex++] = ValueToChar(nextChar);
-				while (arrayIndex != charCount) returnArray[arrayIndex++] = '='; //padding
+
+				if (!removePadding)
+				{
+					while (arrayIndex != charCount)
+					{
+						returnArray[arrayIndex++] = '=';
+					}
+				}
 			}
 
-			return new string(returnArray);
+			return new string(returnArray, 0, arrayIndex);
 		}
 
 		private static int CharToValue(char c)
