@@ -1,9 +1,10 @@
 ﻿using CompressMedia.CustomAuthentication;
 using CompressMedia.Data;
 using CompressMedia.DTOs;
+using CompressMedia.Helpers;
 using CompressMedia.Models;
 using CompressMedia.Repositories.Interfaces;
-using Google.Authenticator;
+//using Google.Authenticator;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Text;
@@ -200,7 +201,7 @@ namespace CompressMedia.Services
 			TwoFactorAuthenticator twoFacAuth = new();
 			var setupInfo = twoFacAuth.GenerateSetupCode(
 				"CompressMedia",
-				loginDto.Username,
+				loginDto.Username!,
 				secretByte,
 				3
 			);
@@ -217,7 +218,12 @@ namespace CompressMedia.Services
 		{
 			TwoFactorAuthenticator twoFactorAuthenticator = new();
 			string? qrCodeData = HttpContext.Session.GetString("QrCodeData");
-			bool isValid = twoFactorAuthenticator.ValidateTwoFactorPIN(qrCodeData, loginDto.otpCode, TimeSpan.FromSeconds(3));
+			byte[] qrCodeDataBytes = Encoding.UTF8.GetBytes(qrCodeData!);
+			if (loginDto.otpCode == null)
+			{
+				return false;
+			}
+			bool isValid = twoFactorAuthenticator.ValidateTwoFactorPIN(qrCodeDataBytes, loginDto.otpCode, TimeSpan.FromSeconds(3));
 			if (isValid)
 			{
 				HttpContext.Session.Remove("QrCodeData");
