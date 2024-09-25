@@ -18,5 +18,20 @@
         <input asp-for="Password" type="password" class="form-control" />
         <span asp-validation-for="Password" class="text-danger"></span>
     </div>
+
+@*     <h4>Receive Otp Code:</h4>
+    <div class="form-check">
+        <input class="form-check-input" type="radio" name="OtpMethod" id="ReceiveViaQr" value="qr" checked />
+        <label class="form-check-label" for="ReceiveViaQr">
+            Receive via QR Code
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="radio" name="OtpMethod" id="ReceiveViaEmail" value="email" />
+        <label class="form-check-label" for="ReceiveViaEmail">
+            Receive via Email
+        </label>
+    </div> *@
+
     <button type="submit" class="btn btn-primary">Login</button>
 </form>

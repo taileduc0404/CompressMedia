@@ -3,8 +3,8 @@ using CompressMedia.Data;
 using CompressMedia.DTOs;
 using CompressMedia.Helpers;
 using CompressMedia.Models;
+using CompressMedia.Repositories;
 using CompressMedia.Repositories.Interfaces;
-//using Google.Authenticator;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Text;
@@ -14,12 +14,14 @@ namespace CompressMedia.Services
 	public class AuthService : IAuthService
 	{
 		private readonly ApplicationDbContext _applicationDbContext;
+		private readonly IConfiguration _configuration;
 		private readonly IHttpContextAccessor _httpContextAccessor;
 
-		public AuthService(ApplicationDbContext applicationDbContext, IHttpContextAccessor httpContextAccessor)
+		public AuthService(ApplicationDbContext applicationDbContext, IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
 		{
 			_applicationDbContext = applicationDbContext;
 			_httpContextAccessor = httpContextAccessor;
+			_configuration = configuration;
 		}
 		private HttpContext HttpContext => _httpContextAccessor.HttpContext!;
 
@@ -43,8 +45,8 @@ namespace CompressMedia.Services
 				{
 					return "p";
 				}
-				string qrCode = await GenerateQrCode(dto);
-				return qrCode;
+
+				return user.Username!;
 			}
 			catch (Exception ex)
 			{
@@ -102,12 +104,15 @@ namespace CompressMedia.Services
 					FirstName = dto.FirstName,
 					LastName = dto.LastName,
 					Email = dto.Email,
-					PasswordHash = PasswordHasher.HashPassword(dto.Password!).ToString(),
+					PasswordHash = PasswordHasher.Hash(dto.Password!).ToString(),
 					SecretKey = Guid.NewGuid().ToString()
 				};
 
 				_applicationDbContext.users.Add(user);
 				await _applicationDbContext.SaveChangesAsync();
+				// Gửi qr đính kèm trong mail
+				await SendQrCodeViaEmail(dto);
+
 				return "success";
 			}
 			catch (Exception ex)
@@ -189,24 +194,25 @@ namespace CompressMedia.Services
 		/// <param name="loginDto"></param>
 		/// <returns></returns>
 		/// <exception cref="Exception"></exception>
-		public async Task<string> GenerateQrCode(LoginDto loginDto)
+		public async Task<string> GenerateQrCode(RegisterDto registerDto)
 		{
-			User? user = await _applicationDbContext.users.SingleOrDefaultAsync(u => u.Username == loginDto.Username);
+			User? user = await _applicationDbContext.users.SingleOrDefaultAsync(u => u.Username == registerDto.Username);
 			if (user == null) throw new Exception("User not found");
 
-			string qrCodeData = $"User:{loginDto.Username}{user.SecretKey}";
+			string qrCodeData = $"{user.SecretKey}";
 
 			byte[] secretByte = Encoding.UTF8.GetBytes(qrCodeData);
 
 			TwoFactorAuthenticator twoFacAuth = new();
-			var setupInfo = twoFacAuth.GenerateSetupCode(
+			SetupCode setupInfo = twoFacAuth.GenerateSetupCode(
 				"CompressMedia",
-				loginDto.Username!,
+				registerDto.Username!,
 				secretByte,
 				3
 			);
-			HttpContext.Session.SetString("QrCodeData", qrCodeData);
-			return setupInfo.QrCodeSetupImageUrl;
+			string qrCodeUrl = setupInfo.QrCodeSetupImageUrl;
+
+			return qrCodeUrl;
 		}
 
 		/// <summary>
@@ -217,21 +223,61 @@ namespace CompressMedia.Services
 		public bool VerifyOtp(LoginDto loginDto)
 		{
 			TwoFactorAuthenticator twoFactorAuthenticator = new();
-			string? qrCodeData = HttpContext.Session.GetString("QrCodeData");
+			User? user = _applicationDbContext.users.SingleOrDefault(u => u.Username == loginDto.Username);
+			if (user == null) throw new Exception("User not found");
+
+			string qrCodeData = $"{user.SecretKey}";
 			byte[] qrCodeDataBytes = Encoding.UTF8.GetBytes(qrCodeData!);
-			if (loginDto.otpCode == null)
+			if (loginDto.OtpCode == null)
 			{
 				return false;
 			}
-			bool isValid = twoFactorAuthenticator.ValidateTwoFactorPIN(qrCodeDataBytes, loginDto.otpCode, TimeSpan.FromSeconds(3));
+
+			bool isValid = twoFactorAuthenticator.ValidateTwoFactorPIN(qrCodeDataBytes, loginDto.OtpCode!, TimeSpan.FromSeconds(3));
 			if (isValid)
 			{
-				HttpContext.Session.Remove("QrCodeData");
+
 				string userInfoEncode = EncodeStringToBase64(loginDto);
 				SetLoginCookie(userInfoEncode);
 				return true;
 			}
 			return false;
+		}
+
+		public async Task<string> SendQrCodeViaEmail(RegisterDto registerDto)
+		{
+			if (registerDto is null)
+			{
+				return null!;
+			}
+			User? user = await _applicationDbContext.users.SingleOrDefaultAsync(u => u.Username == registerDto.Username);
+			if (user == null) throw new Exception("User not found");
+
+			string qrCodeData = $"{user.Username}:{user.SecretKey}";
+			string qrCode = await GenerateQrCode(registerDto);
+			EmailProviderFactory emailProviderFactory = new EmailProviderFactory(_configuration);
+
+			IEmailProvider emailProvider = emailProviderFactory.CreateEmailProvider();
+			await emailProvider.SendEmailAsync(registerDto.FirstName + " " + registerDto.LastName, registerDto.Email!, qrCode);
+			return "QR Code has send to your email";
+		}
+
+		public async Task<string> SendOtpViaEmail(string secretKey, string fullName, string to)
+		{
+			if (secretKey is null || fullName is null || to is null)
+			{
+				return null!;
+			}
+
+			TwoFactorAuthenticator twoFactorAuthenticator = new();
+			byte[] userDataByte = Encoding.UTF8.GetBytes(secretKey);
+			string otp = twoFactorAuthenticator.GenerateTotp(userDataByte, twoFactorAuthenticator.GetCurrentTimeStepNumber());
+			EmailProviderFactory emailProviderFactory = new EmailProviderFactory(_configuration);
+
+			IEmailProvider emailProvider = emailProviderFactory.CreateEmailProvider();
+			await emailProvider.SendEmailAsync(fullName, to, otp);
+			HttpContext.Session.SetString("QrCodeData", secretKey);
+			return "OTP has send to your email";
 		}
 	}
 }

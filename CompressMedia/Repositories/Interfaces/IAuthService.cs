@@ -1,5 +1,6 @@
 ﻿
 using CompressMedia.DTOs;
+using CompressMedia.Models;
 
 namespace CompressMedia.Repositories.Interfaces
 {
@@ -13,7 +14,9 @@ namespace CompressMedia.Repositories.Interfaces
 		void SetLoginCookie(string base64LoginInfo);
 		string GetLoginInfoFromCookie();
 		string DecodeFromBase64(string base64EncodedData);
-		Task<string> GenerateQrCode(LoginDto loginDto);
+		Task<string> GenerateQrCode(RegisterDto registerDto);
+		Task<string> SendQrCodeViaEmail(RegisterDto registerDto);
+		Task<string> SendOtpViaEmail(string secretKey, string fullName, string to);
 		bool VerifyOtp(LoginDto loginDto);
 
 	}

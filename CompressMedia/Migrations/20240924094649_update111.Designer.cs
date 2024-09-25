@@ -4,6 +4,7 @@ using CompressMedia.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CompressMedia.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240924094649_update111")]
+    partial class update111
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -129,23 +132,6 @@ namespace CompressMedia.Migrations
                     b.ToTable("roles");
                 });
 
-            modelBuilder.Entity("CompressMedia.Models.TemporarySecretKey", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("QrCodeUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("temporarySecretKeys");
-                });
-
             modelBuilder.Entity("CompressMedia.Models.User", b =>
                 {
                     b.Property<string>("UserId")
@@ -184,7 +170,7 @@ namespace CompressMedia.Migrations
                             Email = "taileduc0404@gmail.com",
                             FirstName = "Tai",
                             LastName = "Le Duc",
-                            PasswordHash = "$2a$11$dIAZdS./tIWbjcKGw/j22ejB6MsdxAVz7oo8EFEhUgrNBVsVrs3y6",
+                            PasswordHash = "$2a$11$p6H6smTNKZfaYBqr3ertz.zyPrcLOOnYsavEON.9SKQCRNCVFDpim",
                             Username = "Le Duc Tai"
                         },
                         new
@@ -193,7 +179,7 @@ namespace CompressMedia.Migrations
                             Email = "admin@gmail.com",
                             FirstName = "Super",
                             LastName = "Admin",
-                            PasswordHash = "$2a$11$imT/0TJnYXcuMOh8JFfPy.RsiRKNI2xFYwht3gzzZex4EHN1wTSyS",
+                            PasswordHash = "$2a$11$sr2ZofJP4QCICU1bZmKQaO1qPc5RLS6XtMiagx3LQvIENunGfxFMO",
                             Username = "admin"
                         });
                 });

@@ -4,6 +4,7 @@ using CompressMedia.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CompressMedia.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240924094753_update1111")]
+    partial class update1111
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -137,7 +140,10 @@ namespace CompressMedia.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("QrCodeUrl")
+                    b.Property<DateTime>("Expiry")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SecretKey")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -184,7 +190,7 @@ namespace CompressMedia.Migrations
                             Email = "taileduc0404@gmail.com",
                             FirstName = "Tai",
                             LastName = "Le Duc",
-                            PasswordHash = "$2a$11$dIAZdS./tIWbjcKGw/j22ejB6MsdxAVz7oo8EFEhUgrNBVsVrs3y6",
+                            PasswordHash = "$2a$11$c2c5b/S7AXbGlZAqp.3m9e5ONVaNx3R5SMoTO2sM5ULacadVdCOxa",
                             Username = "Le Duc Tai"
                         },
                         new
@@ -193,7 +199,7 @@ namespace CompressMedia.Migrations
                             Email = "admin@gmail.com",
                             FirstName = "Super",
                             LastName = "Admin",
-                            PasswordHash = "$2a$11$imT/0TJnYXcuMOh8JFfPy.RsiRKNI2xFYwht3gzzZex4EHN1wTSyS",
+                            PasswordHash = "$2a$11$2egHOo8k1ldxdrlJqtycBOq0l5g/ULFkPIOz4VkMZc7HvexTb.FkC",
                             Username = "admin"
                         });
                 });

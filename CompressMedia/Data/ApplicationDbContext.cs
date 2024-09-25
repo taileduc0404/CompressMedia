@@ -15,8 +15,9 @@ namespace CompressMedia.Data
 		public DbSet<Media> medias { get; set; }
 		public DbSet<BlobContainer> blobContainers { get; set; }
 		public DbSet<Blob> blobs { get; set; }
+		public DbSet<TemporarySecretKey> temporarySecretKeys { get; set; }
 
-		protected override void OnModelCreating(ModelBuilder modelBuilder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			modelBuilder.Entity<BlobContainer>()
 				.HasOne(c => c.User)
@@ -76,7 +77,7 @@ namespace CompressMedia.Data
 					FirstName = "Tai",
 					LastName = "Le Duc",
 					Email = "taileduc0404@gmail.com",
-					PasswordHash = PasswordHasher.HashPassword("Tai@123")
+					PasswordHash = PasswordHasher.Hash("Tai@123")
 				},
 				new User
 				{
@@ -85,7 +86,7 @@ namespace CompressMedia.Data
 					FirstName = "Super",
 					LastName = "Admin",
 					Email = "admin@gmail.com",
-					PasswordHash = PasswordHasher.HashPassword("Admin@123")
+					PasswordHash = PasswordHasher.Hash("Admin@123")
 				}
 			);
 

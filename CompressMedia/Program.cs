@@ -4,6 +4,7 @@ using CompressMedia.Repositories;
 using CompressMedia.Repositories.Interfaces;
 using CompressMedia.Services;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 
@@ -23,6 +24,8 @@ namespace CompressMedia
 			builder.Services.AddSession(options =>
 			{
 				options.IdleTimeout = TimeSpan.FromSeconds(30);
+				options.Cookie.HttpOnly = true;
+				options.Cookie.IsEssential = true;
 			});
 
 			builder.Services.AddSingleton<BlobStorageDbContext>(provider =>

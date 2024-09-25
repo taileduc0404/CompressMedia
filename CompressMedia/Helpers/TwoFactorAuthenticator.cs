@@ -35,7 +35,8 @@ namespace CompressMedia.Helpers
 
 			var provisionUrl = string.IsNullOrWhiteSpace(issuer)
 				? $"otpauth://totp/{accountTitle}?secret={encodedSecretKey}&algorithm={HashType}"
-				: $"otpauth://totp/{Uri.EscapeDataString(issuer)}:{accountTitle}?secret={encodedSecretKey}&issuer={Uri.EscapeDataString(issuer)}&algorithm={HashType}";
+				: $"otpauth://totp/{Uri.EscapeDataString(issuer)}:{accountTitle}?secret={encodedSecretKey}&issuer={Uri.EscapeDataString(issuer)}";
+			//: $"otpauth://totp/{Uri.EscapeDataString(issuer)}:{accountTitle}?secret={encodedSecretKey}&issuer={Uri.EscapeDataString(issuer)}&algorithm={HashType}";
 
 			return new SetupCode(accountTitle, encodedSecretKey, generateQrCode ? GenerateQrCodeUrl(qrPixelsPerModule, provisionUrl) : "");
 		}
@@ -86,7 +87,7 @@ namespace CompressMedia.Helpers
 		/// <summary>
 		///Tính toán OTP dựa trên secretKey và bước thời gian
 		/// </summary>
-		private string GenerateTotp(byte[] secretKey, long timeStep)
+		public string GenerateTotp(byte[] secretKey, long timeStep)
 		{
 			using var hmac = new HMACSHA1(secretKey);
 
@@ -104,9 +105,9 @@ namespace CompressMedia.Helpers
 		}
 
 		/// <summary>
-		/// Hàm GetCurrentTimeStepNumber lấy số bước thời gian hiện tại (chia số giây từ Unix Epoch cho StepSeconds)
+		/// Lấy số bước thời gian hiện tại (chia số giây từ Unix Epoch cho StepSeconds)
 		/// </summary>
-		private long GetCurrentTimeStepNumber()
+		public long GetCurrentTimeStepNumber()
 		{
 			var elapsedSeconds = (DateTime.UtcNow.Ticks - UnixEpochTicks) / TicksToSeconds;
 			return elapsedSeconds / StepSeconds;

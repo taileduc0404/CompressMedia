@@ -23,11 +23,11 @@
 	}
 
 
-	@if (Model != null && !string.IsNullOrWhiteSpace(Model.QrCode))
+	@if (Model != null)
 	{
 		<h3>Scan the QR Code for Two-Factor Authentication</h3>
 		<h5 style="color:red">If you have updated your account information before, please scan the new qr code</h5>
-		<img src="@Url.Content(Model.QrCode)" alt="QR Code" style="width:200px;height:200px;" />
+		@* <img src="@Url.Content(Model.QrCode)" alt="QR Code" style="width:200px;height:200px;" /> *@
 
 
 		<form asp-action="Verify" method="post">
@@ -35,9 +35,9 @@
 			<input type="hidden" asp-for="Password" />
 
 			<div class="form-group">
-				<label asp-for="otpCode">Enter OTP Code</label>
-				<input asp-for="otpCode" class="form-control" />
-				<span asp-validation-for="otpCode" class="text-danger"></span>
+				<label asp-for="OtpCode">Enter OTP Code</label>
+				<input asp-for="OtpCode" class="form-control" />
+				<span asp-validation-for="OtpCode" class="text-danger"></span>
 			</div>
 			<button type="submit" class="btn btn-primary">Verify</button>
 		</form>

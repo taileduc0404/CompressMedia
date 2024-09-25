@@ -6,7 +6,7 @@ namespace CompressMedia.DTOs
 		public string? BlobId { get; set; }
 		public string? BlobName { get; set; }
 		public IFormFile? Data { get; set; }
-		public DateTime UploadedDate { get; set; }
+		public DateTime UploadedDate { get; set; } = DateTime.Now;
 		public string? CompressionTime { get; set; }
 		public string? ContentType { get; set; }
 		public int ContainerId { get; set; }

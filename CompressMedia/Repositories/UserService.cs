@@ -53,7 +53,7 @@ namespace CompressMedia.Repositories
 			{
 				if (userDto.OldPassword == userInfo.Password && userDto.NewPassword == userDto.ConfirmNewPassword)
 				{
-					userUpdate!.PasswordHash = PasswordHasher.HashPassword(userDto.NewPassword);
+					userUpdate!.PasswordHash = PasswordHasher.Hash(userDto.NewPassword);
 				}
 			}
 
