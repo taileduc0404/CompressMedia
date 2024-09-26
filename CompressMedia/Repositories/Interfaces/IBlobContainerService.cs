@@ -5,10 +5,8 @@ namespace CompressMedia.Repositories.Interfaces
 {
 	public interface IBlobContainerService
 	{
-		Task<bool> SaveAsync(ContainerDto containerDto);
+		Task<string> SaveAsync(ContainerDto containerDto);
 		Task<bool> DeleteAsync(int containerId);
-		//Task<bool> ExistsAsync(string name); 
 		Task<ICollection<BlobContainer>> GetAsync();
-		//Task<Stream?> GetOrNullAsync(string name);
 	}
 }

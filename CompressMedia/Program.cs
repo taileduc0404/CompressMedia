@@ -1,10 +1,10 @@
 using AspNetCoreHero.ToastNotification;
 using CompressMedia.Data;
+using CompressMedia.Middlewares.Extension;
 using CompressMedia.Repositories;
 using CompressMedia.Repositories.Interfaces;
 using CompressMedia.Services;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 
@@ -44,7 +44,7 @@ namespace CompressMedia
 
 			builder.Services.AddNotyf(config =>
 			{
-				config.DurationInSeconds = 5;
+				config.DurationInSeconds = 15;
 				config.IsDismissable = true;
 				config.Position = NotyfPosition.BottomRight;
 			});
@@ -78,13 +78,13 @@ namespace CompressMedia
 
 			app.UseHttpsRedirection();
 
+			app.UseMp4FileValidationMiddleware();
+
+			//app.UseRouting();
+
 			app.UseSession();
 
-			app.UseStaticFiles(new StaticFileOptions
-			{
-				FileProvider = new PhysicalFileProvider(Path.GetTempPath()),
-				RequestPath = "/tempfiles"
-			});
+			app.UseStaticFiles();
 
 			app.UseRouting();
 

@@ -1,6 +1,5 @@
 ﻿
 using CompressMedia.DTOs;
-using CompressMedia.Models;
 
 namespace CompressMedia.Repositories.Interfaces
 {

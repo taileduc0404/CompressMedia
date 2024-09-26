@@ -70,11 +70,18 @@ namespace CompressMedia.Controllers
 		{
 			if (containerDto != null)
 			{
-				bool result = await _blobContainerService.SaveAsync(containerDto);
-				if (result is false)
+				string result = await _blobContainerService.SaveAsync(containerDto);
+
+				switch (result)
 				{
-					_notyfService.Error("Create container failed.");
+					case "null":
+						_notyfService.Error("Access Dinied");
+						return RedirectToAction("Index");
+					case "exist":
+						_notyfService.Error("Container Name exist. Enter other Container Name");
+						return RedirectToAction("Index");
 				}
+
 				_notyfService.Success("Create container successfully.");
 				return RedirectToAction("Index");
 			}

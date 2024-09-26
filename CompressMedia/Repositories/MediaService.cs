@@ -1,10 +1,13 @@
 ﻿using CompressMedia.Data;
 using CompressMedia.DTOs;
+using CompressMedia.Exceptions;
+using CompressMedia.Exceptions.BaseException;
 using CompressMedia.Models;
 using CompressMedia.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileProviders;
-using Newtonsoft.Json;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using MongoDB.Driver.GridFS;
 using System.Diagnostics;
 
 namespace CompressMedia.Repositories
@@ -12,45 +15,14 @@ namespace CompressMedia.Repositories
 	public class MediaService : IMediaService
 	{
 		private readonly ApplicationDbContext _context;
-		private readonly IAuthService _authService;
-		private readonly IFileProvider _fileProvider;
-		public MediaService(ApplicationDbContext context, IAuthService authService, IFileProvider fileProvider)
+		private readonly BlobStorageDbContext _storageContext;
+		private readonly IGridFSBucket _gridFSBucket;
+		public MediaService(ApplicationDbContext context, BlobStorageDbContext storageContext)
 		{
 			_context = context;
-			_authService = authService;
-			_fileProvider = fileProvider;
+			_storageContext = storageContext ?? throw new ArgumentNullException(nameof(storageContext));
+			_gridFSBucket = new GridFSBucket(_storageContext._mongoDatabase);
 		}
-
-		/// <summary>
-		/// Tìm media bằng Id
-		/// </summary>
-		/// <param name="mediaId"></param>
-		/// <returns></returns>
-		public async Task<Media> GetMediaById(int mediaId)
-		{
-			Media? media = await _context.medias.SingleOrDefaultAsync(m => m.MediaId == mediaId);
-			if (media == null)
-			{
-				return null!;
-			}
-
-			return media;
-		}
-
-		/// <summary>
-		/// Lấy ra danh sách video của user đagn đăngg nhập
-		/// </summary>
-		/// <returns></returns>
-		public async Task<ICollection<Media>> GetAllVideo()
-		{
-			string cookie = _authService.GetLoginInfoFromCookie();
-			string cookieDecode = _authService.DecodeFromBase64(cookie);
-			LoginDto userInfo = JsonConvert.DeserializeObject<LoginDto>(cookieDecode);
-			User? user = await _context.users.FirstOrDefaultAsync(u => u.Username == userInfo.Username);
-
-			return await _context.medias.Where(m => m.MediaType!.StartsWith("video") && m.UserId == user!.UserId).ToListAsync();
-		}
-
 		/// <summary>
 		/// Thực thi command
 		/// </summary>
@@ -102,7 +74,7 @@ namespace CompressMedia.Repositories
 		{
 			if (!File.Exists(videoPath))
 			{
-				throw new FileNotFoundException($"The file {videoPath} does not exist");
+				throw new VideoFileNotFoundException(videoPath);
 			}
 
 			string argument = $"-v error -select_streams v:0 -show_entries stream=width,height,r_frame_rate,bit_rate -of csv=p=0 {videoPath}";
@@ -126,11 +98,11 @@ namespace CompressMedia.Repositories
 
 				if (!string.IsNullOrEmpty(error))
 				{
-					throw new Exception($"FFprobe Error: {error}");
+					throw new FFprobeException(error);
 				}
 				if (string.IsNullOrEmpty(output))
 				{
-					throw new Exception("No output from ffprobe.");
+					throw new VideoInfoException("No output from ffprobe");
 				}
 
 				string[] lines = output.Split(',');
@@ -144,7 +116,7 @@ namespace CompressMedia.Repositories
 				}
 				else
 				{
-					throw new Exception("Unexpected ffprobe output format.");
+					throw new UnexpectedOutputFormatException();
 				}
 			}
 		}
@@ -176,79 +148,150 @@ namespace CompressMedia.Repositories
 		/// <exception cref="ArgumentException"></exception>  
 		private static string GetOption(string videoPath, string outputPath, int width, int height, string fps, bool isFps, bool isResolution, bool isBitrate)
 		{
-			string root = "/Medias/Videos/";
+
 			string resolution = $"{width}x{height}";
 			string key = $"{resolution}_{fps}_{(isFps ? "true" : "false")}Fps_{(isResolution ? "true" : "false")}Resolution_{(isBitrate ? "true" : "false")}Bitrate";
 
-			// Trường hợp chỉ nén fps
+			// Chỉ nén fps
 			if (isFps && !isResolution && !isBitrate && CompressOption.FpsOnlyOption.TryGetValue(key, out string? fpsCommand))
 			{
-				return fpsCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", "wwwroot" + root + outputPath);
+				return fpsCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", outputPath);
 			}
 
-			// Trường hợp chỉ nén resolution
+			// Chỉ nén resolution
 			if (isResolution && !isFps && !isBitrate && CompressOption.ResolutionOnlyOption.TryGetValue(key, out string? resolutionCommand))
 			{
-				return resolutionCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", "wwwroot" + root + outputPath);
+				return resolutionCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", outputPath);
 			}
 
-			// Trwufogn hợp chỉ nén bitrate
+			// Chỉ nén bitrate
 			if (isBitrate && !isFps && !isResolution && CompressOption.BitrateOnlyOption.TryGetValue(key, out string? bitrateCommand))
 			{
-				return bitrateCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", "wwwroot" + root + outputPath);
+				return bitrateCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", outputPath);
 			}
 
-			// Trường hợp nén fps và resolution
+			// Nén fps và resolution
 			if (!isBitrate && isFps && isResolution && CompressOption.FpsVsResolutionOption.TryGetValue(key, out string? fpsVsResolutionCommand))
 			{
-				return fpsVsResolutionCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", "wwwroot" + root + outputPath);
+				return fpsVsResolutionCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", outputPath);
 			}
 
-			// Trường hợp nén fps và bitrate
+			// Nén fps và bitrate
 			if (isBitrate && isFps && !isResolution && CompressOption.FpsVsBitrateOption.TryGetValue(key, out string? fpsVsBitrateCommand))
 			{
-				return fpsVsBitrateCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", "wwwroot" + root + outputPath);
+				return fpsVsBitrateCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", outputPath);
 			}
 
-			// Trường hợp nén resolution và bitrate
+			// Nén resolution và bitrate
 			if (isBitrate && !isFps && isResolution && CompressOption.ResolutionVsBitrateOption.TryGetValue(key, out string? resolutionVsBitrateCommand))
 			{
-				return resolutionVsBitrateCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", "wwwroot" + root + outputPath);
+				return resolutionVsBitrateCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", outputPath);
 			}
 
 			if (width < height)
 			{
-				return $"-i {videoPath} -c:v libvpx-vp9 -vf pad=width=ih*16/9:height=ih:x=(ow-iw)/2:y=0 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K {"wwwroot" + root + outputPath}";
+				return $"-i {videoPath} -c:v libvpx-vp9 -vf pad=width=ih*16/9:height=ih:x=(ow-iw)/2:y=0 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K {outputPath}";
 			}
 
-			// Trường hợp nén full option
+			// Nén full option
 			if (CompressOption.CompressFullOption.TryGetValue(key, out string? fullCommand))
 			{
-				return fullCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", "wwwroot" + root + outputPath);
+				return fullCommand.Replace("{videoPath}", videoPath).Replace("{outputPath}", outputPath);
 			}
 
 			// Truonwggf hợp người dùng không chọn option nào
-			return $"-i {videoPath} -c:v libvpx-vp9 -preset ultrafast -af volume=0.5 -b:a 64K {"wwwroot" + root + outputPath}";
+			return $"-i {videoPath} -c:v libvpx-vp9 -preset ultrafast -af volume=0.5 -b:a 64K {outputPath}";
 		}
 
 		/// <summary>
-		/// Nén video
+		/// Xóa các file tạm được tạo ra
+		/// </summary>
+		private void CleanTempFile()
+		{
+			string tempDirectory = Path.GetTempPath();
+
+			string[] tempFiles = Directory.GetFiles(tempDirectory, "*.tmp");
+
+			foreach (string file in tempFiles)
+			{
+				try
+				{
+					File.Delete(file);
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"Error deleting file {file}: {ex.Message}");
+				}
+			}
+		}
+
+		/// <summary>
+		/// Download file về máy
+		/// </summary>
+		/// <param name="blobDto"></param>
+		/// <returns></returns>
+		public async Task<string> DownloadFile(BlobDto blobDto)
+		{
+			var filter = Builders<GridFSFileInfo<ObjectId>>
+								  .Filter.Eq(x => x.Filename, blobDto.BlobName);
+			var searchResult = await _gridFSBucket.FindAsync(filter);
+			var fileEntry = searchResult.FirstOrDefault();
+
+			byte[] content = await _gridFSBucket.DownloadAsBytesAsync(fileEntry.Id);
+			if (content == null)
+			{
+				return null!;
+			}
+
+			using (MemoryStream memoryStream = new MemoryStream(content))
+			{
+				string tempInputPath = Path.GetTempFileName();
+				using (FileStream fileStream = new FileStream(tempInputPath, FileMode.Create, FileAccess.Write))
+				{
+					memoryStream.CopyTo(fileStream);
+					return tempInputPath;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Xử lý nén
 		/// </summary>
 		/// <param name="videoPath"></param>
 		/// <param name="fileNameOutput"></param>
 		/// <returns></returns>
-		public string OptimizeVideo(string videoPath, string fileNameOutput, MediaDto mediaDto)
+		public async Task<string> OptimizeVideo(BlobDto blobDto)
 		{
-			if (videoPath is not null)
+			string tempFile = await DownloadFile(blobDto);
+			string fileTempOuput = Path.GetTempFileName();
+			string fileTempOuputFinal = Path.ChangeExtension(fileTempOuput, ".mp4");
+			File.Delete(fileTempOuput);
+			if (tempFile is not null)
 			{
-				GetVideoInfo(videoPath, out int width, out int height, out int fps, out int bitrate);
+				try
+				{
+					GetVideoInfo(tempFile, out int width, out int height, out int fps, out int bitrate);
+					string fpsString = $"{fps}fps";
+					string arg = GetOption(tempFile, fileTempOuputFinal, width, height, fpsString, blobDto.IsFps, blobDto.IsResolution, blobDto.IsBitrateVideo);
 
-				string fpsString = $"{fps}fps";
-				string arg = GetOption(videoPath, fileNameOutput, width, height, fpsString, mediaDto.IsFps, mediaDto.IsResolution, mediaDto.IsBitrateVideo);
+					ExecuteCommand(arg);
+					File.Delete(tempFile);
+				}
+				catch (VideoFileNotFoundException)
+				{
+					return "notfound";
+				}
+				catch (FFprobeException)
+				{
+					return "cannotGetInfo";
+				}
+				catch (UnexpectedOutputFormatException)
+				{
+					return "cannotGetInfo";
+				}
 
-				ExecuteCommand(arg);
 			}
-			return fileNameOutput;
+			return fileTempOuputFinal;
 		}
 
 		/// <summary>
@@ -257,174 +300,92 @@ namespace CompressMedia.Repositories
 		/// <param name="mediaDto"></param>
 		/// <returns></returns>
 		/// <exception cref="FileNotFoundException"></exception>
-		public bool CompressMedia(string fileNameInput, MediaDto mediaDto)
+		public async Task<bool> CompressMedia(BlobDto blobDto)
 		{
-			// Kiểm tra người dùng có đăng nhập chưa
-			string cookie = _authService.GetLoginInfoFromCookie();
-			string cookieDecode = _authService.DecodeFromBase64(cookie);
-			LoginDto userInfo = JsonConvert.DeserializeObject<LoginDto>(cookieDecode);
-			User? user = _context.users.FirstOrDefault(u => u.Username == userInfo.Username);
-
-			string root = "/Medias/Videos/";
-			// fileNameInput: 7a87788f-f8a7-45b1-83b4-b2e2eb9bc30b&test.mp4
-
-			string rootPathFileNameInput = root + fileNameInput;
-			IFileInfo fileInputInfo = _fileProvider.GetFileInfo(rootPathFileNameInput);
-			string? rootPathFileInputInfo = fileInputInfo.PhysicalPath;
-			Media deleteMedia = _context.medias.FirstOrDefault(m => m.MediaPath == rootPathFileInputInfo)!;
-
-			deleteMedia.Status = "Compressing...";
-			_context.Update(deleteMedia);
-			_context.SaveChanges();
-
-			string fileNameOutput = Guid.NewGuid() + "&" + fileNameInput!.Split('&')[1];
-
-			// Bộ đếm thời gian nensn vidoe
-			Stopwatch stopwatch = new Stopwatch();
-			stopwatch.Start();
-			string result = OptimizeVideo("wwwroot" + rootPathFileNameInput, fileNameOutput, mediaDto);
-			stopwatch.Stop();
-
-			TimeSpan timeSpan = stopwatch.Elapsed;
-
-			string elapsedTime = string.Format("{0:00}:{1:00}:{2:00}", timeSpan.Hours, timeSpan.Minutes, timeSpan.Seconds);
-
-			string srcOptimized = root + result;
-			IFileInfo fileInfoOptimized = _fileProvider.GetFileInfo(srcOptimized);
-			string? rootPathOptimized = fileInfoOptimized.PhysicalPath!;
-			if (rootPathOptimized != null)
+			try
 			{
-				// Xóa ảnh gốc sau khi optimize
-				File.Delete("wwwroot" + rootPathFileNameInput);
-
-				_context.medias.Remove(deleteMedia);
-
-				if (!File.Exists(rootPathOptimized))
+				var oldBlob = await _context.blobs.FirstOrDefaultAsync(b => b.BlobId == blobDto.BlobId);
+				if (oldBlob is null)
 				{
-					throw new FileNotFoundException("File optimized does not exist.", rootPathOptimized);
+					return false;
+				}
+				oldBlob!.Status = "Compressing...";
+				_context.blobs.Update(oldBlob);
+				await _context.SaveChangesAsync();
+
+				Stopwatch stopwatch = new Stopwatch();
+				stopwatch.Start();
+				string fileTempOutput = await OptimizeVideo(blobDto);
+				stopwatch.Stop();
+				switch (fileTempOutput)
+				{
+					case "notfound":
+						return false;
+					case "cannotGetInfo":
+						return false;
+				}
+				TimeSpan timeSpan = stopwatch.Elapsed;
+				string elapsedTime = string.Format("{0:00}:{1:00}:{2:00}", timeSpan.Hours, timeSpan.Minutes, timeSpan.Seconds);
+
+				byte[] fileBytes = File.ReadAllBytes(fileTempOutput);
+
+				var metadata = new BsonDocument
+				{
+					{"filename", blobDto.BlobName },
+					{"contentType", blobDto.ContentType },
+					{"length",fileBytes.Length},
+					{"uploadDate", oldBlob.UploadDate }
+				};
+
+				using (Stream stream = new MemoryStream(fileBytes))
+				{
+					var fileId = await _gridFSBucket.UploadFromStreamAsync(blobDto.BlobName, stream, new GridFSUploadOptions
+					{
+						Metadata = metadata
+					});
+
+					Blob newBlob = new Blob
+					{
+						BlobId = fileId.ToString(),
+						ContainerId = blobDto.ContainerId,
+						BlobName = blobDto.BlobName!,
+						Status = "Compressed",
+						ContentType = blobDto.ContentType!,
+						Size = fileBytes.Length,
+						CompressionTime = elapsedTime,
+						UploadDate = oldBlob.UploadDate,
+
+					};
+					await _context.blobs.AddAsync(newBlob);
+					await _context.SaveChangesAsync();
 				}
 
-				// Lấy độ dài file của ảnh đã optimize
-				FileInfo fileInfo = new FileInfo(rootPathOptimized);
-				long fileLength = fileInfo.Length;
+				File.Delete(fileTempOutput);
 
-				// Xác định loại media
-				string mediaType = fileInfo.Extension.ToLower() switch
+				//Xóa video cũ trong sql server
+				if (oldBlob != null)
 				{
-					".mp4" => "video/mp4",
-					".jpg" => "image/jpg",
-					".jpeg" => "image/jpeg",
-					".png" => "image/png",
-					".gif" => "image/gif",
-					_ => "unknown"
-				};
+					_context.blobs.Remove(oldBlob);
+					await _context.SaveChangesAsync();
+				}
 
-				Media media = new Media
+				//Xóa video cũ trong mongodb
+				var oldFileId = new ObjectId(blobDto.BlobId);
+				var filter = Builders<GridFSFileInfo<ObjectId>>.Filter.Eq(x => x.Id, oldFileId);
+				var oldFileEntry = await _gridFSBucket.FindAsync(filter);
+				var oldFile = oldFileEntry.FirstOrDefault();
+				if (oldFile != null)
 				{
-					MediaPath = rootPathOptimized,
-					CreatedDate = DateTime.Now,
-					Size = fileLength,
-					Status = "Compressed",
-					CompressDuration = elapsedTime,
-					MediaType = mediaType,
-					UserId = user!.UserId
-				};
+					await _gridFSBucket.DeleteAsync(oldFile.Id);
+				}
 
-				_context.medias.Add(media);
-				_context.SaveChanges();
+				CleanTempFile();
 				return true;
 			}
-			return false;
-		}
-
-		/// <summary>
-		/// Upload media
-		/// </summary>
-		/// <param name="mediaDto"></param>
-		/// <returns></returns>
-		public string UploadMedia(MediaDto mediaDto)
-		{
-			// Kiểm tra người dùng có đăng nhập chưa
-			string cookie = _authService.GetLoginInfoFromCookie();
-			string cookieDecode = _authService.DecodeFromBase64(cookie);
-			LoginDto userInfo = JsonConvert.DeserializeObject<LoginDto>(cookieDecode);
-			User? user = _context.users.FirstOrDefault(u => u.Username == userInfo.Username);
-
-			// Kiểm tra xem người dùng có upload file media lên chưa
-			if (mediaDto.Media != null)
+			catch (Exception ex)
 			{
-				string root = "/Medias/Videos/";
-				string imageName = $"{Guid.NewGuid() + "&" + mediaDto.Media.FileName}";
-				//string imageName = $"{mediaDto.Media.FileName}";
-
-				if (!Directory.Exists("wwwroot" + root))
-				{
-					Directory.CreateDirectory("wwwroot" + root);
-				}
-
-				string src = root + imageName;
-				IFileInfo imgInfo = _fileProvider.GetFileInfo(src);
-				string? rootPath = imgInfo.PhysicalPath!;
-
-				if (string.IsNullOrEmpty(rootPath)) return null!;
-				using (var fileStream = new FileStream(rootPath, FileMode.Create))
-				{
-					mediaDto.Media.CopyTo(fileStream);
-				}
-
-				if (string.IsNullOrEmpty(rootPath)) return null!;
-
-				if (rootPath != null)
-				{
-					// Lấy độ dài file của ảnh đã optimize
-					FileInfo fileInfo = new FileInfo(rootPath);
-					long fileLength = fileInfo.Length;
-
-					// Xác định loại media
-					string mediaType = fileInfo.Extension.ToLower() switch
-					{
-						".mp4" => "video/mp4",
-						".jpg" => "image/jpg",
-						".jpeg" => "image/jpeg",
-						".png" => "image/png",
-						".gif" => "image/gif",
-						_ => "unknown"
-					};
-
-					Media media = new Media()
-					{
-						MediaPath = rootPath,
-						CreatedDate = DateTime.Now,
-						Size = fileLength,
-						Status = "Original",
-						MediaType = mediaType,
-						UserId = user!.UserId
-					};
-
-					_context.medias.Add(media);
-					_context.SaveChanges();
-					return "wwwroot" + src;
-				}
-				return null!;
+				throw new Exception(ex.Message);
 			}
-			return null!;
-		}
-
-		/// <summary>
-		/// Xóa video
-		/// </summary>
-		/// <param name="mediaId"></param>
-		/// <returns></returns>
-		public async Task<bool> DeleteMedia(int mediaId)
-		{
-			string splitString = @"D:\BÀI TẬP\ASP.NET\CompressMedia\CompressMedia\";
-			Media? media = await _context.medias.SingleOrDefaultAsync(m => m.MediaId == mediaId);
-			if (media == null) return false;
-			string mediaPath = media.MediaPath!.Replace(splitString, "");
-			File.Delete(mediaPath);
-			_context.medias.Remove(media);
-			await _context.SaveChangesAsync();
-			return true;
 		}
 	}
 }

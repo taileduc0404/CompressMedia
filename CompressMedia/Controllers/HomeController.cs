@@ -7,131 +7,130 @@ using System.Diagnostics;
 
 namespace CompressMedia.Controllers
 {
-    public class HomeController : Controller
-    {
-        private readonly ILogger<HomeController> _logger;
-        private readonly IAuthService _authService;
-        private readonly INotyfService _notyfService;
+	public class HomeController : Controller
+	{
+		private readonly ILogger<HomeController> _logger;
+		private readonly IAuthService _authService;
+		private readonly INotyfService _notyfService;
 
-        public HomeController(IAuthService authService, ILogger<HomeController> logger, INotyfService notyfService)
-        {
-            _authService = authService;
-            _logger = logger;
-            _notyfService = notyfService;
-        }
+		public HomeController(IAuthService authService, ILogger<HomeController> logger, INotyfService notyfService)
+		{
+			_authService = authService;
+			_logger = logger;
+			_notyfService = notyfService;
+		}
 
-        public IActionResult Index(LoginDto dto)
-        {
+		public IActionResult Index(LoginDto dto)
+		{
 
-            return View(dto.Username, dto.Password);
-        }
+			return View(dto.Username, dto.Password);
+		}
 
-        [HttpGet]
-        public IActionResult Register()
-        {
-            return View(new RegisterDto());
-        }
+		[HttpGet]
+		public IActionResult Register()
+		{
+			return View(new RegisterDto());
+		}
 
-        [HttpPost]
-        public async Task<IActionResult> Register(RegisterDto dto)
-        {
-            if (!ModelState.IsValid)
-            {
-                _notyfService.Warning("Please enter your info.");
-                return View(nameof(Register));
-            }
-            var result = await _authService.Register(dto);
+		[HttpPost]
+		public async Task<IActionResult> Register(RegisterDto dto)
+		{
+			if (!ModelState.IsValid)
+			{
+				_notyfService.Warning("Please enter your info.");
+				return View(nameof(Register));
+			}
+			var result = await _authService.Register(dto);
 
-            switch (result)
-            {
-                case "null":
-                    _notyfService.Error("Register failed.");
-                    return View(nameof(Register));
-                case "usernameExist":
-                    _notyfService.Warning("Username you enter already exist.");
-                    return View(nameof(Register));
-                default:
-                    _notyfService.Success("Register successfully.");
-                    return RedirectToAction("Index");
-            }
+			switch (result)
+			{
+				case "null":
+					_notyfService.Error("Register failed.");
+					return View(nameof(Register));
+				case "usernameExist":
+					_notyfService.Warning("Username you enter already exist.");
+					return View(nameof(Register));
+				default:
+					_notyfService.Success("Register successfully.");
+					return RedirectToAction("Index");
+			}
 
 
-        }
+		}
 
-        [HttpGet]
-        public IActionResult Login()
-        {
-            return View(new LoginDto());
-        }
+		[HttpGet]
+		public IActionResult Login()
+		{
+			return View(new LoginDto());
+		}
 
-        [HttpPost]
-        public async Task<IActionResult> Login(LoginDto dto)
-        {
-            if (!ModelState.IsValid || string.IsNullOrWhiteSpace(dto.Username) || string.IsNullOrWhiteSpace(dto.Password))
-            {
-                _notyfService.Warning("Please enter both username and password.");
-                return View(dto);
-            }
+		[HttpPost]
+		public async Task<IActionResult> Login(LoginDto dto)
+		{
+			if (!ModelState.IsValid || string.IsNullOrWhiteSpace(dto.Username) || string.IsNullOrWhiteSpace(dto.Password))
+			{
+				_notyfService.Warning("Please enter both username and password.");
+				return View(dto);
+			}
 
-            var result = await _authService.Login(dto);
+			var result = await _authService.Login(dto);
 
-            switch (result)
-            {
-                case "u":
-                    _notyfService.Error("Invalid username.");
-                    return View(new LoginDto());
-                case "p":
-                    _notyfService.Error("Invalid password.");
-                    return View(new LoginDto());
-                default:
-                    _notyfService.Success("Login Successfully.");
-                    return View("Index", dto);
-            }
-        }
+			switch (result)
+			{
+				case "u":
+					_notyfService.Error("Invalid username.");
+					return View(new LoginDto());
+				case "p":
+					_notyfService.Error("Invalid password.");
+					return View(new LoginDto());
+				default:
+					return View("Index", dto);
+			}
+		}
 
-        [HttpPost]
-        public IActionResult Verify(LoginDto loginDto)
-        {
-            bool result = _authService.VerifyOtp(loginDto);
-            if (result)
-            {
-                _notyfService.Success("Logged in successfully.");
-                return RedirectToAction("Index");
-            }
-            _notyfService.Error("Your Otp Enter Wrong");
-            return RedirectToAction("Index");
-        }
+		[HttpPost]
+		public IActionResult Verify(LoginDto loginDto)
+		{
+			bool result = _authService.VerifyOtp(loginDto);
+			if (result)
+			{
+				_notyfService.Success("Logged in successfully.");
+				return RedirectToAction("Index");
+			}
+			_notyfService.Error("Wrong OTP");
+			return RedirectToAction("Index");
+		}
 
-        public IActionResult IsLoggedIn()
-        {
-            if (_authService.IsUserAuthenticated())
-            {
-                _notyfService.Success("User is logged in");
-                return RedirectToAction("Index");
-            }
-            else
-            {
-                _notyfService.Error("User is not logged in");
-                return RedirectToAction("Index");
-            }
-        }
+		public IActionResult IsLoggedIn()
+		{
+			if (_authService.IsUserAuthenticated())
+			{
+				_notyfService.Success("User is logged in");
+				return RedirectToAction("Index");
+			}
+			else
+			{
+				_notyfService.Error("User is not logged in");
+				return RedirectToAction("Index");
+			}
+		}
 
-        public IActionResult Logout()
-        {
-            _authService.Logout();
-            _notyfService.Success("Logged out successfully.");
-            return RedirectToAction("Index");
-        }
+		public IActionResult Logout()
+		{
+			_authService.Logout();
+			_notyfService.Success("Logged out successfully.");
+			return RedirectToAction("Index");
+		}
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+		public IActionResult Privacy()
+		{
+			return View();
+		}
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
-    }
+		[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+		public IActionResult Error()
+		{
+			return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+		}
+	}
 }

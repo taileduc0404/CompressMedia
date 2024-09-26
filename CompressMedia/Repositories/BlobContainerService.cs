@@ -76,7 +76,7 @@ namespace CompressMedia.Repositories
 		/// </summary>
 		/// <param name="containerDto"></param>
 		/// <returns></returns>
-		public async Task<bool> SaveAsync(ContainerDto containerDto)
+		public async Task<string> SaveAsync(ContainerDto containerDto)
 		{
 			string cookie = _authService.GetLoginInfoFromCookie();
 			string cookieDecode = _authService.DecodeFromBase64(cookie);
@@ -85,8 +85,16 @@ namespace CompressMedia.Repositories
 
 			if (userInfo == null)
 			{
-				return false;
+				return "null";
 			}
+
+			BlobContainer? findContainer = await _context.blobContainers.Where(u => u.User!.Username == user!.Username)
+													.SingleOrDefaultAsync(x => x.ContainerName == containerDto.ContainerName);
+			if (findContainer != null)
+			{
+				return "exist";
+			}
+
 			BlobContainer container = new BlobContainer
 			{
 				ContainerName = containerDto.ContainerName!,
@@ -95,7 +103,8 @@ namespace CompressMedia.Repositories
 
 			await _context.blobContainers.AddAsync(container);
 			await _context.SaveChangesAsync();
-			return true;
+			return "true";
+
 		}
 	}
 }

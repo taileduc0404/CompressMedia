@@ -17,7 +17,7 @@ namespace CompressMedia.Data
 		public DbSet<Blob> blobs { get; set; }
 		public DbSet<TemporarySecretKey> temporarySecretKeys { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			modelBuilder.Entity<BlobContainer>()
 				.HasOne(c => c.User)

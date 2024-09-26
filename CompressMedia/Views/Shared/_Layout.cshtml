@@ -25,10 +25,16 @@
 						</li>
 
 						@inject IAuthService AuthService
+						@inject IUserService UserService
 						@functions {
 							public bool IsUserLoggedInAsync()
 							{
 								return AuthService.IsUserAuthenticated();
+							}
+
+							public string GetUser()
+							{
+								return UserService.GetUserNameLoggedIn();
 							}
 						}
 						@if (IsUserLoggedInAsync())
@@ -41,7 +47,7 @@
 								<ul class="dropdown-menu">
 									<li><a class="dropdown-item" asp-controller="User" asp-action="GetAllUser">GetAllUser</a></li>
 									<li><a class="dropdown-item" asp-controller="User" asp-action="EditProfile">Edit Profile</a></li>
-									<li><a class="dropdown-item" asp-controller="Media" asp-action="Index">Media</a></li>
+									@* <li><a class="dropdown-item" asp-controller="Media" asp-action="Index">Media</a></li> *@
 									<li><a class="dropdown-item" asp-controller="BlobContainer" asp-action="Index">Container</a></li>
 
 								</ul>
@@ -49,6 +55,10 @@
 							<li class="nav-item">
 								<a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Logout">Logout</a>
 							</li>
+							<li class="nav-item">
+								<a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Welcome, @GetUser()!</a>
+							</li>
+
 						}
 						else
 						{

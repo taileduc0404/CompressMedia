@@ -119,5 +119,23 @@ namespace CompressMedia.Repositories
 
 			return userInfo;
 		}
+
+		/// <summary>
+		/// Lấy username của user đang login
+		/// </summary>
+		/// <returns></returns>
+		public string GetUserNameLoggedIn()
+		{
+			string cookie = _authService.GetLoginInfoFromCookie();
+			if (cookie != null)
+			{
+				string cookieDecode = _authService.DecodeFromBase64(cookie);
+				User user = JsonConvert.DeserializeObject<User>(cookieDecode);
+				return user?.Username ?? string.Empty;
+			}
+
+			return string.Empty;
+
+		}
 	}
 }
