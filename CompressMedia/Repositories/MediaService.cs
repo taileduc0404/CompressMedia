@@ -121,6 +121,8 @@ namespace CompressMedia.Repositories
 			}
 		}
 
+		// Get Image Info (lấy thông tin hình ảnh, chủ yếu là kích thước hình ảnh)
+
 		/// <summary>
 		/// Định dạng lại fps
 		/// </summary>
@@ -289,7 +291,6 @@ namespace CompressMedia.Repositories
 				{
 					return "cannotGetInfo";
 				}
-
 			}
 			return fileTempOuputFinal;
 		}
@@ -316,10 +317,21 @@ namespace CompressMedia.Repositories
 				oldBlob!.Status = "Compressing...";
 				_context.blobs.Update(oldBlob);
 				await _context.SaveChangesAsync();
-
+				 
 				Stopwatch stopwatch = new Stopwatch();
 				stopwatch.Start();
-				string fileTempOutput = await OptimizeVideo(blobDto);
+				//Kiểm tra nếu media đầu vào là video thì optimize video, ngược lại thì optimze image
+				//string fileTempOutput;
+				//if (blobDto.ContentType!.StartsWith("video/"))
+				//{
+    //                fileTempOutput = await OptimizeVideo(blobDto);
+    //            }
+				//else
+				//{
+				//	fileTempOutput= aw
+				//}
+
+                string fileTempOutput = await OptimizeVideo(blobDto);
 				stopwatch.Stop();
 				switch (fileTempOutput)
 				{
@@ -390,6 +402,14 @@ namespace CompressMedia.Repositories
 			{
 				throw new Exception(ex.Message);
 			}
+		}
+
+		public Task<Stream> ResizerAsync(BlobDto blobDto)
+		{
+
+
+
+			throw new NotImplementedException();
 		}
 	}
 }

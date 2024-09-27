@@ -153,7 +153,7 @@ namespace CompressMedia.Services
 			{
 				HttpOnly = true,
 				Secure = true,
-				Expires = DateTimeOffset.UtcNow.AddMinutes(30)
+				Expires = DateTimeOffset.UtcNow.AddMinutes(60)
 			};
 
 			HttpContext.Response.Cookies.Append("LoginInfo", base64LoginInfo, options);

@@ -1,0 +1,32 @@
+﻿@model CompressMedia.DTOs.BlobDto
+
+@{
+	ViewData["Title"] = "Compress";
+}
+
+<h2>Compress</h2>
+
+@if (Model == null)
+{
+	<p>Model is null. Please check the data passed to this view.</p>
+}
+else
+{
+	<form asp-action="Compress" asp-controller="Blob" method="post" enctype="multipart/form-data">
+		<input type="hidden" name="BlobName" value="@Model.BlobName" />
+		<input type="hidden" name="BlobId" value="@Model.BlobId" />
+		<input type="hidden" name="ContentType" value="@Model.ContentType" />
+		<input type="hidden" name="ContainerId" value="@Model.ContainerId" />
+		<h6 style="color:red"> Warning! You should choose 2 or more options for better compression. Choosing only 1 option can reduce the quality and increase the size of your video</h6>
+		<div class="form-group">
+			<label for="ImageResizeMode"> Image Resize Mode: </label>
+			<select asp-for="ImageResizeMode.HasValue" class="form-control" id="ImageResizeMode">
+				<option value="">- Choose Option - </option>
+				<option value="0"> Zoom Out </option>
+				<option value="1"> Zoom In </option>
+				<option value="2"> Aspect Ratio </option>
+			</select>
+		</div>
+		<button class="btn btn-outline-secondary" type="submit">Compress</button>
+	</form>
+}

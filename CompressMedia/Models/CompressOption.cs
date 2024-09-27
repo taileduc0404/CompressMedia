@@ -2,6 +2,7 @@
 {
 	public class CompressOption
 	{
+		#region Các options nén video
 		/// <summary>
 		/// Nén full options
 		/// </summary>
@@ -120,5 +121,10 @@
 				{"640x360_30fps_falseFps_trueResolution_trueBitrate","-i {videoPath} -c:v libvpx-vp9 -vf scale=426:240 -aspect 4:3 -preset ultrafast -b:v 1M -minrate 500K -maxrate 964K -bufsize 2M -crf 30 -af volume=0.5 -b:a 64K {outputPath}" },
 				#endregion
 		};
+		#endregion
+
+		#region Các options nén image
+
+		#endregion
 	}
 }

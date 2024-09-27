@@ -7,6 +7,6 @@ namespace CompressMedia.Repositories.Interfaces
 		Task<string> DownloadFile(BlobDto blobDto);
 		Task<string> CompressMedia(BlobDto blobDto);
 		Task<string> OptimizeVideo(BlobDto blobDto);
-
+		Task<Stream> ResizerAsync(BlobDto blobDto);
 	}
 }

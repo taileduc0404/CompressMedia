@@ -21,13 +21,6 @@ namespace CompressMedia
 				options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 			});
 
-			builder.Services.AddSession(options =>
-			{
-				options.IdleTimeout = TimeSpan.FromSeconds(30);
-				options.Cookie.HttpOnly = true;
-				options.Cookie.IsEssential = true;
-			});
-
 			builder.Services.AddSingleton<BlobStorageDbContext>(provider =>
 			{
 				var configuration = builder.Configuration;
@@ -79,10 +72,6 @@ namespace CompressMedia
 			app.UseHttpsRedirection();
 
 			app.UseMp4FileValidationMiddleware();
-
-			//app.UseRouting();
-
-			app.UseSession();
 
 			app.UseStaticFiles();
 

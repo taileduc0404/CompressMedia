@@ -1,8 +1,10 @@
 ﻿using AspNetCoreHero.ToastNotification.Abstractions;
+using CompressMedia.Data;
 using CompressMedia.DTOs;
 using CompressMedia.Models;
 using CompressMedia.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CompressMedia.Controllers
 {
@@ -12,13 +14,15 @@ namespace CompressMedia.Controllers
 		private readonly IMediaService _mediaService;
 		private readonly IUserService _userService;
 		private readonly INotyfService _notyfService;
+		private readonly ApplicationDbContext _context;
 
-		public BlobController(IBlobService blobService, IUserService userService, INotyfService notyfService, IMediaService mediaService)
+		public BlobController(IBlobService blobService, IUserService userService, INotyfService notyfService, IMediaService mediaService, ApplicationDbContext context)
 		{
 			_blobService = blobService;
 			_userService = userService;
 			_notyfService = notyfService;
 			_mediaService = mediaService;
+			_context = context;
 		}
 
 		/// <summary>
@@ -162,6 +166,14 @@ namespace CompressMedia.Controllers
 				return RedirectToAction("AccessDenied");
 			}
 
+			Blob? blob = await _context.blobs.SingleOrDefaultAsync(x => x.BlobId == blobId);
+
+			if (blob is null)
+			{
+				_notyfService.Error("Blob not found.");
+				return RedirectToAction("Index", new { containerId = containerId });
+			}
+
 			BlobDto blobDto = new BlobDto
 			{
 				BlobId = blobId,
@@ -196,12 +208,32 @@ namespace CompressMedia.Controllers
 			try
 			{
 				var stream = await _blobService.GetBlobStreamAsync(blobName);
+				if (blobName.EndsWith(".jpg"))
+				{
+					return File(stream, "image/jpg");
+				}
+				if (blobName.EndsWith(".png"))
+				{
+					return File(stream, "image/png");
+				}
+				if (blobName.EndsWith(".webp"))
+				{
+					return File(stream, "image/webp");
+				}
 				return File(stream, "video/mp4");
+
+
 			}
 			catch (FileNotFoundException)
 			{
 				return NotFound();
 			}
+		}
+
+		[HttpGet]
+		public IActionResult Resize()
+		{
+			return View(new BlobDto());
 		}
 	}
 }

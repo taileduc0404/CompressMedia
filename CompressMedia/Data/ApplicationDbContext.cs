@@ -12,7 +12,7 @@ namespace CompressMedia.Data
 
 		public DbSet<User> users { get; set; }
 		public DbSet<Role> roles { get; set; }
-		public DbSet<Media> medias { get; set; }
+		//public DbSet<Media> medias { get; set; }
 		public DbSet<BlobContainer> blobContainers { get; set; }
 		public DbSet<Blob> blobs { get; set; }
 
@@ -44,18 +44,18 @@ namespace CompressMedia.Data
 				.HasIndex(u => u.Username)
 				.IsUnique();
 
-			modelBuilder.Entity<Media>()
-				.HasKey(m => m.MediaId);
+			//modelBuilder.Entity<Media>()
+			//	.HasKey(m => m.MediaId);
 
 			modelBuilder.Entity<Role>()
 				.HasKey(r => r.RoleId);
 
 			// Quan hệ 1-n giữa User và Media
-			modelBuilder.Entity<Media>()
-				.HasOne(m => m.User)
-				.WithMany(u => u.Medias)
-				.HasForeignKey(m => m.UserId)
-				.OnDelete(DeleteBehavior.Cascade);
+			//modelBuilder.Entity<Media>()
+			//	.HasOne(m => m.User)
+			//	.WithMany(u => u.Medias)
+			//	.HasForeignKey(m => m.UserId)
+			//	.OnDelete(DeleteBehavior.Cascade);
 
 			// Quan hệ n-n giữa User và Role
 			modelBuilder.Entity<User>()
