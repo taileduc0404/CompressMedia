@@ -15,7 +15,6 @@ namespace CompressMedia.Data
 		public DbSet<Media> medias { get; set; }
 		public DbSet<BlobContainer> blobContainers { get; set; }
 		public DbSet<Blob> blobs { get; set; }
-		public DbSet<TemporarySecretKey> temporarySecretKeys { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{

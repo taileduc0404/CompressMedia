@@ -300,14 +300,18 @@ namespace CompressMedia.Repositories
 		/// <param name="mediaDto"></param>
 		/// <returns></returns>
 		/// <exception cref="FileNotFoundException"></exception>
-		public async Task<bool> CompressMedia(BlobDto blobDto)
+		public async Task<string> CompressMedia(BlobDto blobDto)
 		{
 			try
 			{
 				var oldBlob = await _context.blobs.FirstOrDefaultAsync(b => b.BlobId == blobDto.BlobId);
-				if (oldBlob is null)
+				if (oldBlob!.Status == "Compressed")
 				{
-					return false;
+					return "compressed";
+				}
+				else if (oldBlob is null)
+				{
+					return "notfound";
 				}
 				oldBlob!.Status = "Compressing...";
 				_context.blobs.Update(oldBlob);
@@ -320,9 +324,9 @@ namespace CompressMedia.Repositories
 				switch (fileTempOutput)
 				{
 					case "notfound":
-						return false;
+						return "notfound";
 					case "cannotGetInfo":
-						return false;
+						return "cannotGetInfo";
 				}
 				TimeSpan timeSpan = stopwatch.Elapsed;
 				string elapsedTime = string.Format("{0:00}:{1:00}:{2:00}", timeSpan.Hours, timeSpan.Minutes, timeSpan.Seconds);
@@ -380,7 +384,7 @@ namespace CompressMedia.Repositories
 				}
 
 				CleanTempFile();
-				return true;
+				return "ok";
 			}
 			catch (Exception ex)
 			{

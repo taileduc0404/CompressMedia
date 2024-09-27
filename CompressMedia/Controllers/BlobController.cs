@@ -127,15 +127,22 @@ namespace CompressMedia.Controllers
 		{
 			try
 			{
-				bool result = await _mediaService.CompressMedia(blobDto);
-				if (result)
+				string result = await _mediaService.CompressMedia(blobDto);
+				switch (result)
 				{
-					_notyfService.Success("Compress successfully.");
+					case "notfound":
+						_notyfService.Error("Video not found.");
+						break;
+					case "cannotGetInfo":
+						_notyfService.Error("Cannot get video's info.");
+						break;
+					case "compressed":
+						_notyfService.Error("This video has been compressed.");
+						break;
+
 				}
-				else
-				{
-					_notyfService.Error("Video not found.");
-				}
+
+				_notyfService.Success("Compress successfully.");
 				return RedirectToAction("Index", new { containerId = blobDto.ContainerId });
 			}
 			catch (Exception)
