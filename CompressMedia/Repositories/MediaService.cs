@@ -85,7 +85,7 @@ namespace CompressMedia.Repositories
 		}
 
 		/// <summary>
-		/// Download file về máy
+		/// Download file về cho việc xử lý
 		/// </summary>
 		/// <param name="blobDto"></param>
 		/// <returns></returns>

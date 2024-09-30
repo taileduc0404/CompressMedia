@@ -22,21 +22,21 @@ namespace CompressMedia.Middlewares
 				foreach (var item in context.Request.Form.Files)
 				{
 					string fileExtension = Path.GetExtension(item.FileName).ToLowerInvariant();
-					if (fileExtension != ".mp4" && fileExtension != ".jpg" && fileExtension != ".jpeg" && fileExtension != ".png" && fileExtension != ".webp")
+					if (fileExtension != ".mp4" && fileExtension != ".jpg" && fileExtension != ".jpeg")
 					{
 						Console.OutputEncoding = System.Text.Encoding.UTF8;
-						_logger.LogWarning("Invalid file format, only .mp4 files are allowed");
+						_logger.LogWarning("Invalid file format, only .mp4 and .jpg files are allowed");
 
 						using (var scope = _scopeFactory.CreateScope())
 						{
 							var notifyService = scope.ServiceProvider.GetRequiredService<INotyfService>();
-							notifyService.Error("Invalid file format, only .mp4 files are allowed");
+							notifyService.Error("Invalid file format, only .mp4 and .jpg files are allowed");
 						}
 
 						context.Response.StatusCode = StatusCodes.Status400BadRequest;
 						context.Response.ContentType = "text/html";
 
-						var errorMessageHtml = "<html><body><h3>Invalid file format, only .mp4 files are allowed</p></body></html>";
+						var errorMessageHtml = "<html><body><h3>Invalid file format, only .mp4 and .jpg files are allowed</p></body></html>";
 						await context.Response.WriteAsync(errorMessageHtml);
 						return;
 					}
