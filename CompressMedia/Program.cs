@@ -34,6 +34,7 @@ namespace CompressMedia
 			builder.Services.AddScoped<IMediaService, MediaService>();
 			builder.Services.AddScoped<IBlobContainerService, BlobContainerService>();
 			builder.Services.AddScoped<IBlobService, BlobService>();
+			builder.Services.AddScoped<ICompressService, CompressService>();
 
 			builder.Services.AddNotyf(config =>
 			{

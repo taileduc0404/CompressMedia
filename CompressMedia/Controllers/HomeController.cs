@@ -48,10 +48,10 @@ namespace CompressMedia.Controllers
 					_notyfService.Error("Register failed.");
 					return View(nameof(Register));
 				case "usernameExist":
-					_notyfService.Warning("Username you enter already exist.");
+					_notyfService.Warning("Username or email you enter already exist.");
 					return View(nameof(Register));
 				default:
-					_notyfService.Success("Register successfully.");
+					_notyfService.Success("Register successfully. Check your email and scan qr code to login");
 					return RedirectToAction("Index");
 			}
 

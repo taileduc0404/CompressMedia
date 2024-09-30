@@ -1,10 +1,10 @@
 ﻿@model CompressMedia.DTOs.BlobDto
 
 @{
-	ViewData["Title"] = "Compress";
+	ViewData["Title"] = "Resize Image";
 }
 
-<h2>Compress</h2>
+<h2>Image Manipulation</h2>
 
 @if (Model == null)
 {
@@ -12,21 +12,58 @@
 }
 else
 {
-	<form asp-action="Compress" asp-controller="Blob" method="post" enctype="multipart/form-data">
+	<form asp-action="Resize" asp-controller="Blob" method="post" enctype="multipart/form-data">
 		<input type="hidden" name="BlobName" value="@Model.BlobName" />
 		<input type="hidden" name="BlobId" value="@Model.BlobId" />
 		<input type="hidden" name="ContentType" value="@Model.ContentType" />
 		<input type="hidden" name="ContainerId" value="@Model.ContainerId" />
-		<h6 style="color:red"> Warning! You should choose 2 or more options for better compression. Choosing only 1 option can reduce the quality and increase the size of your video</h6>
+
+		<h6 style="color:red"> Warning! Editing a photo multiple times will reduce photo quality</h6>
+
 		<div class="form-group">
 			<label for="ImageResizeMode"> Image Resize Mode: </label>
-			<select asp-for="ImageResizeMode.HasValue" class="form-control" id="ImageResizeMode">
-				<option value="">- Choose Option - </option>
+			<select asp-for="ImageResizeMode" class="form-control" id="ImageResizeMode" onchange="handleResizeModeChange(this.value)">
+				<option value="">- Choose Option -</option>
 				<option value="0"> Zoom Out </option>
 				<option value="1"> Zoom In </option>
 				<option value="2"> Aspect Ratio </option>
+				<option value="3"> Compress Image </option>
 			</select>
 		</div>
+
+		<div id="zoomOptions" style="display:none;" class="form-group">
+			<label for="ImageZoomInMode"> Zoom Options: </label>
+			<select asp-for="ImageZoomMode" class="form-control" id="ImageZoomMode">
+				<option value="0"> 1.5x </option>
+				<option value="1"> 2x </option>
+			</select>
+		</div>
+
+		<div id="aspectRatioOptions" style="display:none;" class="form-group">
+			<label for="ImageAspectRatioMode"> Aspect Ratio Options: </label>
+			<select asp-for="ImageAspectRatioMode" class="form-control" id="ImageAspectRatioMode">
+				<option value="0"> 16:9 </option>
+				<option value="1"> 5:4 </option>
+				<option value="2"> 4:3 </option>
+				<option value="3"> 3:2 </option>
+				<option value="4"> 3:1 </option>
+				<option value="5"> 1:1 </option>
+			</select>
+		</div>
+
 		<button class="btn btn-outline-secondary" type="submit">Compress</button>
 	</form>
 }
+
+<script>
+	function handleResizeModeChange(value) {
+		document.getElementById('zoomOptions').style.display = 'none';
+		document.getElementById('aspectRatioOptions').style.display = 'none';
+
+		if (value == "0" || value == "1") {
+			document.getElementById('zoomOptions').style.display = 'block';
+		} else if (value == "2") {
+			document.getElementById('aspectRatioOptions').style.display = 'block';
+		}
+	}
+</script>

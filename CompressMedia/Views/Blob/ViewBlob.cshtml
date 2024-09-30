@@ -1,23 +1,23 @@
 ﻿@model CompressMedia.DTOs.BlobDto
 
 @{
-    ViewData["Title"] = "View Media";
+	ViewData["Title"] = "View Media";
 }
 
 <h2>View Media</h2>
 
 @if (Model.ContentType!.StartsWith("video/"))
 {
-    <video width="600" controls>
-        <source src="@Url.Action("ViewBlob", "Blob", new { blobName = Model.BlobName })" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
+	<video width="600" controls>
+		<source src="@Url.Action("ViewBlob", "Blob", new { blobId = Model.BlobId })" type="video/mp4">
+		Your browser does not support the video tag.
+	</video>
 }
 else if (Model.ContentType.StartsWith("image/"))
 {
-    <img src="@Url.Action("ViewBlob", "Blob", new { blobName = Model.BlobName })" alt="Image" width="600" />
+	<img src="@Url.Action("ViewBlob", "Blob", new { blobId = Model.BlobId })" alt="Image" width="600" />
 }
 else
 {
-    <p>Unsupported media type.</p>
+	<p>Unsupported media type.</p>
 }

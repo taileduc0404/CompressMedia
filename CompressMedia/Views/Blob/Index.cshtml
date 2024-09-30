@@ -29,19 +29,22 @@
 				<td>
 					@if (media.Status == "Compressed" || media.Status == "Compressing...")
 					{
-						<button type="button" class="btn btn-outline-success" disabled>Compress</button>
+						if (media.ContentType == "image/jpeg" || media.ContentType == "image/png" || media.ContentType == "image/webp")
+						{
+							<a asp-controller="Blob" asp-action="Resize" asp-route-blobId="@media.BlobId" asp-route-blobName="@media.BlobName" asp-route-contentType="@media.ContentType" asp-route-containerId="@media.ContainerId" class="btn btn-outline-success">Resize</a>
 
+						}
+						<button type="button" class="btn btn-outline-success" disabled>Compress</button>
 					}
 					else
 					{
 						if (media.ContentType == "image/jpeg" || media.ContentType == "image/png" || media.ContentType == "image/webp")
 						{
 							<a asp-controller="Blob" asp-action="Resize" asp-route-blobId="@media.BlobId" asp-route-blobName="@media.BlobName" asp-route-contentType="@media.ContentType" asp-route-containerId="@media.ContainerId" class="btn btn-outline-success">Resize</a>
-
 						}
 						<a asp-controller="Blob" asp-action="Compress" asp-route-blobId="@media.BlobId" asp-route-blobName="@media.BlobName" asp-route-contentType="@media.ContentType" asp-route-containerId="@media.ContainerId" class="btn btn-outline-success">Compress</a>
 					}
-					<a asp-controller="Blob" asp-action="ViewBlob" asp-route-blobName="@media.BlobName" class="btn btn-outline-info">View</a>
+					<a asp-controller="Blob" asp-action="ViewBlob" asp-route-blobId="@media.BlobId" class="btn btn-outline-info">View</a>
 					<a asp-controller="Blob" asp-action="DeleteBlob" asp-route-blobId="@media.BlobId" asp-route-containerId="@media.ContainerId" class="btn btn-outline-danger">Delete</a>
 				</td>
 			</tr>

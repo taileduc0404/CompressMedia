@@ -153,9 +153,9 @@ namespace CompressMedia.Repositories
 		/// <param name="blobId"></param>
 		/// <returns></returns>
 		/// <exception cref="FileNotFoundException"></exception>
-		public async Task<Stream> GetBlobStreamAsync(string blobName)
+		public async Task<Stream> GetBlobStreamAsync(string blobId)
 		{
-			var filter = Builders<GridFSFileInfo<ObjectId>>.Filter.Eq("filename", blobName);
+			var filter = Builders<GridFSFileInfo<ObjectId>>.Filter.Eq(x => x.Id, ObjectId.Parse(blobId));
 			var searchResult = await _gridFSBucket.FindAsync(filter);
 			var fileEntry = searchResult.FirstOrDefault();
 

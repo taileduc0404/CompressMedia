@@ -124,7 +124,20 @@
 		#endregion
 
 		#region Các options nén image
-
+		public static readonly Dictionary<string, string> ImageManipulationOptions = new()
+		{
+			{"ZoomOut_1.5","-i {imagePath} -vf scale=iw/1.5:-1 {outputPath}" },
+			{"ZoomOut_2","-i {imagePath} -vf scale=iw/2:-1 {outputPath}" },
+			{"ZoomIn_1.5","-i {imagePath} -vf scale=iw*1.5:-1 {outputPath}" },
+			{"ZoomIn_2","-i {imagePath} -vf scale=iw*2:-1 {outputPath}" },
+			{"AspectRatio_16_9","-i {imagePath} -vf scale=iw*16/9:iw {outputPath}" },
+			{"AspectRatio_5_4","-i {imagePath} -vf scale=iw*5/4:iw {outputPath}" },
+			{"AspectRatio_4_3","-i {imagePath} -vf scale=iw*4/3:iw {outputPath}" },
+			{"AspectRatio_3_2","-i {imagePath} -vf scale=iw*3/2:iw {outputPath}" },
+			{"AspectRatio_3_1","-i {imagePath} -vf scale=iw*3/1:iw {outputPath}" },
+			{"AspectRatio_1_1","-i {imagePath} -vf scale=iw:ih*iw/ih {outputPath}" },
+			{"Compress","-i {imagePath} {outputPath}" },
+		};
 		#endregion
 	}
 }

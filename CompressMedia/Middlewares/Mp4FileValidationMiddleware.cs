@@ -22,7 +22,7 @@ namespace CompressMedia.Middlewares
 				foreach (var item in context.Request.Form.Files)
 				{
 					string fileExtension = Path.GetExtension(item.FileName).ToLowerInvariant();
-					if (fileExtension != ".mp4" && fileExtension != ".jpg" && fileExtension != ".jpeg" && fileExtension != ".png")
+					if (fileExtension != ".mp4" && fileExtension != ".jpg" && fileExtension != ".jpeg" && fileExtension != ".png" && fileExtension != ".webp")
 					{
 						Console.OutputEncoding = System.Text.Encoding.UTF8;
 						_logger.LogWarning("Invalid file format, only .mp4 files are allowed");
