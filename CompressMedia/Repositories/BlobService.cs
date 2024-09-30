@@ -24,32 +24,6 @@ namespace CompressMedia.Repositories
 			_mediaService = mediaService;
 		}
 
-
-		/// <summary>
-		/// Get nội dung của blob (data của blob)
-		/// </summary>
-		/// <param name="blobDto"></param>
-		/// <returns></returns>
-		public async Task<bool> GetBlobContentAsync(BlobDto blobDto)
-		{
-			string result = await _mediaService.DownloadFile(blobDto);
-			if (result is null)
-			{
-				return false;
-			}
-			return true;
-		}
-
-		/// <summary>
-		/// Get thông tin của blob
-		/// </summary>
-		/// <returns></returns>
-		/// <exception cref="NotImplementedException"></exception>
-		public Task GetBlobMetadataAsync()
-		{
-			throw new NotImplementedException();
-		}
-
 		/// <summary>
 		/// Get danh sách blob
 		/// </summary>
@@ -58,16 +32,6 @@ namespace CompressMedia.Repositories
 		public async Task<ICollection<Blob>> GetListBlobAsync(int containerId)
 		{
 			return await _context.blobs.Where(b => b.ContainerId == containerId).ToListAsync();
-		}
-
-		/// <summary>
-		/// Cập nhật blob
-		/// </summary>
-		/// <returns></returns>
-		/// <exception cref="NotImplementedException"></exception>
-		public Task UpdateBlobAsync()
-		{
-			throw new NotImplementedException();
 		}
 
 		/// <summary>
