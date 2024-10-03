@@ -14,14 +14,12 @@ namespace CompressMedia.Repositories
 		private readonly ApplicationDbContext _context;
 		private readonly BlobStorageDbContext _storageContext;
 		private readonly IGridFSBucket _gridFSBucket;
-		private readonly IMediaService _mediaService;
 
-		public BlobService(ApplicationDbContext context, BlobStorageDbContext storageContext, IMediaService mediaService)
+		public BlobService(ApplicationDbContext context, BlobStorageDbContext storageContext)
 		{
 			_context = context;
 			_storageContext = storageContext;
 			_gridFSBucket = new GridFSBucket(_storageContext._mongoDatabase);
-			_mediaService = mediaService;
 		}
 
 		/// <summary>

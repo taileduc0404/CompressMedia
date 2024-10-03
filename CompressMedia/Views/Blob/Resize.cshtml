@@ -20,42 +20,45 @@ else
 
 		<h6 style="color:red"> Warning! Editing a photo multiple times will reduce photo quality</h6>
 
-		<div class="form-group">
-			<label for="ImageResizeMode"> Image Resize Mode: </label>
-			<select asp-for="ImageResizeMode" class="form-control" id="ImageResizeMode" onchange="handleResizeModeChange(this.value)">
-				<option value="">- Choose Option -</option>
-				<option value="0"> Zoom Out </option>
-				<option value="1"> Zoom In </option>
-				<option value="2"> Aspect Ratio </option>
-				<option value="3"> Compress Image </option>
-			</select>
-		</div>
+		<input type="number" asp-for="Width" />
+		<input type="number" asp-for="Height" />
 
-		<div id="zoomOptions" style="display:none;" class="form-group">
-			<label for="ImageZoomInMode"> Zoom Options: </label>
-			<select asp-for="ImageZoomMode" class="form-control" id="ImageZoomMode">
-				<option value="0"> 1.5x </option>
-				<option value="1"> 2x </option>
-			</select>
-		</div>
+		@* <div class="form-group">
+	<label for="ImageResizeMode"> Image Resize Mode: </label>
+	<select asp-for="ImageResizeMode" class="form-control" id="ImageResizeMode" onchange="handleResizeModeChange(this.value)">
+	<option value="">- Choose Option -</option>
+	<option value="0"> Zoom Out </option>
+	<option value="1"> Zoom In </option>
+	<option value="2"> Aspect Ratio </option>
+	<option value="3"> Compress Image </option>
+	</select>
+	</div>
 
-		<div id="aspectRatioOptions" style="display:none;" class="form-group">
-			<label for="ImageAspectRatioMode"> Aspect Ratio Options: </label>
-			<select asp-for="ImageAspectRatioMode" class="form-control" id="ImageAspectRatioMode">
-				<option value="0"> 16:9 </option>
-				<option value="1"> 5:4 </option>
-				<option value="2"> 4:3 </option>
-				<option value="3"> 3:2 </option>
-				<option value="4"> 3:1 </option>
-				<option value="5"> 1:1 </option>
-			</select>
-		</div>
+	<div id="zoomOptions" style="display:none;" class="form-group">
+	<label for="ImageZoomInMode"> Zoom Options: </label>
+	<select asp-for="ImageZoomMode" class="form-control" id="ImageZoomMode">
+	<option value="0"> 1.5x </option>
+	<option value="1"> 2x </option>
+	</select>
+	</div>
+
+	<div id="aspectRatioOptions" style="display:none;" class="form-group">
+	<label for="ImageAspectRatioMode"> Aspect Ratio Options: </label>
+	<select asp-for="ImageAspectRatioMode" class="form-control" id="ImageAspectRatioMode">
+	<option value="0"> 16:9 </option>
+	<option value="1"> 5:4 </option>
+	<option value="2"> 4:3 </option>
+	<option value="3"> 3:2 </option>
+	<option value="4"> 3:1 </option>
+	<option value="5"> 1:1 </option>
+	</select>
+	</div> *@
 
 		<button class="btn btn-outline-secondary" type="submit">Compress</button>
 	</form>
 }
 
-<script>
+@* <script>
 	function handleResizeModeChange(value) {
 		document.getElementById('zoomOptions').style.display = 'none';
 		document.getElementById('aspectRatioOptions').style.display = 'none';
@@ -66,4 +69,4 @@ else
 			document.getElementById('aspectRatioOptions').style.display = 'block';
 		}
 	}
-</script>
+</script> *@

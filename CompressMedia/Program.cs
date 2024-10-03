@@ -34,6 +34,9 @@ namespace CompressMedia
 			builder.Services.AddScoped<IMediaService, MediaService>();
 			builder.Services.AddScoped<IBlobContainerService, BlobContainerService>();
 			builder.Services.AddScoped<IBlobService, BlobService>();
+			builder.Services.AddScoped<IImageResizer, ImageResizer>();
+			builder.Services.AddScoped<IImageSharpService, ImageSharpService>();
+			builder.Services.AddScoped<IImageFFmpegService, ImageFFmpegService>();
 			builder.Services.AddScoped<ICompressService, CompressService>();
 
 			builder.Services.AddNotyf(config =>

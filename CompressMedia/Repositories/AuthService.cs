@@ -87,14 +87,19 @@ namespace CompressMedia.Services
 		{
 			try
 			{
+				if (dto is null)
+				{
+					throw new ArgumentNullException(nameof(dto), "RegisterDto cannot be null");
+				}
+
+				if (string.IsNullOrWhiteSpace(dto.Password))
+				{
+					throw new ArgumentException("Password cannot be null or whitespace", nameof(dto.Password));
+				}
+
 				if (CheckUsernameAndEmail(dto))
 				{
 					return "usernameExist";
-				}
-
-				if (dto is null)
-				{
-					return "null";
 				}
 
 				var user = new User
@@ -104,7 +109,7 @@ namespace CompressMedia.Services
 					FirstName = dto.FirstName,
 					LastName = dto.LastName,
 					Email = dto.Email,
-					PasswordHash = PasswordHasher.Hash(dto.Password!).ToString(),
+					PasswordHash = PasswordHasher.Hash(dto.Password).ToString(),
 					SecretKey = Guid.NewGuid().ToString()
 				};
 

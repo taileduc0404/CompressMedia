@@ -25,10 +25,6 @@ namespace CompressMedia.Controllers
 			_compressService = compressService;
 		}
 
-		/// <summary>
-		/// Lỗi truy cập
-		/// </summary>
-		/// <returns></returns>
 		public IActionResult AccessDenied()
 		{
 			return View();
@@ -64,10 +60,6 @@ namespace CompressMedia.Controllers
 			return View(blobDto);
 		}
 
-		/// <summary>
-		/// Chuyển hướng sang trang upload video
-		/// </summary>
-		/// <returns></returns>
 		[HttpGet]
 		public async Task<IActionResult> CreateBlob(int containerId)
 		{
@@ -84,11 +76,6 @@ namespace CompressMedia.Controllers
 			return View(blobDto);
 		}
 
-		/// <summary>
-		/// Thực hiện việc upload video
-		/// </summary>
-		/// <param name="mediaDto"></param>
-		/// <returns></returns>
 		[HttpPost]
 		[RequestFormLimits(MultipartBodyLengthLimit = 536870912)]
 		public async Task<IActionResult> CreateBlob(BlobDto blobDto)
@@ -258,7 +245,7 @@ namespace CompressMedia.Controllers
 		{
 			try
 			{
-				string result = await _compressService.CompressMedia(blobDto);
+				string result = await _compressService.ImageResizer(blobDto);
 				switch (result)
 				{
 					case "notfound":
@@ -270,9 +257,7 @@ namespace CompressMedia.Controllers
 					case "compressed":
 						_notyfService.Error("This image has been compressed.");
 						break;
-
 				}
-
 				_notyfService.Success("Compress successfully.");
 				return RedirectToAction("Index", new { containerId = blobDto.ContainerId });
 			}

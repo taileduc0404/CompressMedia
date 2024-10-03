@@ -1,9 +1,15 @@
-﻿using CompressMedia.Data;
+﻿using Amazon.Runtime;
+using CompressMedia.Data;
 using CompressMedia.DTOs;
 using CompressMedia.Exceptions;
+using CompressMedia.Imaging;
 using CompressMedia.Models;
 using CompressMedia.Repositories.Interfaces;
+using ImageMagick;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Bson;
+using MongoDB.Driver.GridFS;
+using SixLabors.ImageSharp;
 using System.Diagnostics;
 
 namespace CompressMedia.Repositories
@@ -12,14 +18,20 @@ namespace CompressMedia.Repositories
 	{
 		private readonly IMediaService _mediaService;
 		private readonly ApplicationDbContext _context;
+		public readonly BlobStorageDbContext _storageContext;
+		private readonly IImageResizer _imageResizer;
+		public readonly IGridFSBucket _gridFSBucket;
 
-		public CompressService(IMediaService mediaService, ApplicationDbContext context)
+		public CompressService(IMediaService mediaService, ApplicationDbContext context, BlobStorageDbContext storageContext, IImageResizer imageResizer)
 		{
 			_mediaService = mediaService;
 			_context = context;
+			_storageContext = storageContext ?? throw new ArgumentNullException(nameof(storageContext));
+			_gridFSBucket = new GridFSBucket(_storageContext._mongoDatabase);
+			_imageResizer = imageResizer;
 		}
 		/// <summary>
-		/// Nén media
+		/// Resize hoặc nén media dùng ffmpeg
 		/// </summary>
 		/// <param name="mediaDto"></param>
 		/// <returns></returns>
@@ -45,6 +57,91 @@ namespace CompressMedia.Repositories
 
 			_mediaService.DeleteTemporaryFiles();
 			return "ok";
+		}
+
+		/// <summary>
+		/// Resize hoặc nén media dùng MagickNET
+		/// </summary>
+		/// <param name="blobDto"></param>
+		/// <returns></returns>
+		public async Task<string> CompressMediaWithMagickNET(BlobDto blobDto)
+		{
+			Blob? oldBlob = await _context.blobs.FirstOrDefaultAsync(b => b.BlobId == blobDto.BlobId);
+			if (oldBlob is null) return "notfound";
+
+			oldBlob!.Status = "Resizing...";
+			await _mediaService.UpdateStatus(oldBlob);
+
+			string blob = await _mediaService.DownloadFile(blobDto);
+
+			using (MagickImage image = new MagickImage(blob))
+			{
+				Stopwatch stopwatch = Stopwatch.StartNew();
+				image.Density = new Density(160);
+				MagickGeometry size = new MagickGeometry(320, 480)
+				{
+					IgnoreAspectRatio = false
+				};
+
+				image.Resize(size);
+
+				using MemoryStream mStream = new MemoryStream();
+				image.Write(mStream, MagickFormat.Jpg);
+
+				byte[] resizedImageBytes = mStream.ToArray();
+				stopwatch.Stop();
+
+				string elapsedTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss");
+
+				await _mediaService.SaveCompressBlobAsync(resizedImageBytes, blobDto, oldBlob, elapsedTime);
+
+				await _mediaService.DeleteOldBlob(oldBlob, blobDto);
+				_mediaService.DeleteTemporaryFiles();
+			}
+			return "ok";
+		}
+
+		/// <summary>
+		/// Đổi kích thước hình ảnh
+		/// </summary>
+		/// <param name="blobDto"></param>
+		/// <returns></returns>
+		public async Task<string> ImageResizer(BlobDto blobDto)
+		{
+			Blob? oldBlob = await _context.blobs.FirstOrDefaultAsync(b => b.BlobId == blobDto.BlobId);
+			if (oldBlob is null) return "notfound";
+
+			oldBlob!.Status = "Resizing...";
+			await _mediaService.UpdateStatus(oldBlob);
+
+			string blob = await _mediaService.DownloadFile(blobDto);
+			using (FileStream imageStream = new FileStream(blob, FileMode.Open, FileAccess.ReadWrite))
+			{
+				imageStream.Position = 0;
+				Stopwatch stopwatch = Stopwatch.StartNew();
+				var resizeResult = await _imageResizer.ResizeAsync(
+					imageStream,
+					new ImageResizeArgs
+					{
+						Width = blobDto.Width,
+						Height = blobDto.Height,
+						Mode = ImageResizeMode.Max
+					},
+					mimeType: blobDto.Data!.ContentType
+				);
+				Stream? resultStream = imageStream;
+				if (resizeResult.Result is not null && resizeResult.State == ImageProcessState.Done && resizeResult.Result.CanRead)
+				{
+					resultStream = resizeResult.Result!;
+				}
+				stopwatch.Stop();
+
+				string elapsedTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss");
+
+				await _mediaService.SaveCompressBlobAsync(resultStream, blobDto, oldBlob, elapsedTime);
+				await _mediaService.DeleteOldBlob(oldBlob, blobDto);
+				return "ok";
+			}
 		}
 
 		/// <summary>
@@ -99,7 +196,5 @@ namespace CompressMedia.Repositories
 			}
 			return fileTempOuputFinal;
 		}
-
-
 	}
 }

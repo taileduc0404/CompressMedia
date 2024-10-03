@@ -68,7 +68,6 @@ namespace CompressMedia.Repositories
 			User? user = await _context.users.FirstOrDefaultAsync(u => u.Username == userInfo.Username);
 
 			return await _context.blobContainers.Where(c => c.UserId == user!.UserId).ToListAsync();
-
 		}
 
 		/// <summary>
@@ -104,7 +103,6 @@ namespace CompressMedia.Repositories
 			await _context.blobContainers.AddAsync(container);
 			await _context.SaveChangesAsync();
 			return "true";
-
 		}
 	}
 }

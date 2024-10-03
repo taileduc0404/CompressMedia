@@ -9,6 +9,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using System.Diagnostics;
+using System.Text;
 
 namespace CompressMedia.Repositories
 {
@@ -297,7 +298,7 @@ namespace CompressMedia.Repositories
 		}
 
 		/// <summary>
-		/// Lưu blob mới sau khi nén
+		/// Lưu blob mới sau khi nén với file đầu vào là string
 		/// </summary>
 		/// <param name="output"></param>
 		/// <param name="blobDto"></param>
@@ -336,6 +337,95 @@ namespace CompressMedia.Repositories
 				};
 				await _context.blobs.AddAsync(newBlob);
 				await _context.SaveChangesAsync();
+			}
+		}
+
+		/// <summary>
+		/// Lưu blob mới sau khi nén với file đầu vào là byte[]
+		/// </summary>
+		/// <param name="output"></param>
+		/// <param name="blobDto"></param>
+		/// <param name="oldBlob"></param>
+		/// <param name="elapsedTime"></param>
+		/// <returns></returns>
+		public async Task SaveCompressBlobAsync(byte[] output, BlobDto blobDto, Blob oldBlob, string elapsedTime)
+		{
+			var metadata = new BsonDocument
+				{
+					{"filename", blobDto.BlobName },
+					{"contentType", blobDto.ContentType },
+					{"length",output.Length},
+					{"uploadDate", oldBlob.UploadDate }
+				};
+
+			using (Stream stream = new MemoryStream(output))
+			{
+				var fileId = await _gridFSBucket.UploadFromStreamAsync(blobDto.BlobName, stream, new GridFSUploadOptions
+				{
+					Metadata = metadata
+				});
+
+				Blob newBlob = new Blob
+				{
+					BlobId = fileId.ToString(),
+					ContainerId = blobDto.ContainerId,
+					BlobName = blobDto.BlobName!,
+					Status = "Compressed",
+					ContentType = blobDto.ContentType!,
+					Size = output.Length,
+					CompressionTime = elapsedTime,
+					UploadDate = oldBlob.UploadDate
+				};
+				await _context.blobs.AddAsync(newBlob);
+				await _context.SaveChangesAsync();
+			}
+		}
+
+		/// <summary>
+		/// Lưu blob mới sau khi nén với file đầu vào là stream
+		/// </summary>
+		/// <param name="inputStream"></param>
+		/// <param name="blobDto"></param>
+		/// <param name="oldBlob"></param>
+		/// <param name="elapsedTime"></param>
+		/// <returns></returns>
+		public async Task SaveCompressBlobAsync(Stream inputStream, BlobDto blobDto, Blob oldBlob, string elapsedTime)
+		{
+			using (var memoryStream = new MemoryStream())
+			{
+				await inputStream.CopyToAsync(memoryStream);
+				byte[] fileBytes = memoryStream.ToArray();
+
+				var metadata = new BsonDocument
+				{
+					{ "filename", blobDto.BlobName },
+					{ "contentType", blobDto.ContentType },
+					{ "length", fileBytes.Length },
+					{ "uploadDate", oldBlob.UploadDate }
+				};
+
+				using (Stream compressedStream = new MemoryStream(fileBytes))
+				{
+					var fileId = await _gridFSBucket.UploadFromStreamAsync(blobDto.BlobName, compressedStream, new GridFSUploadOptions
+					{
+						Metadata = metadata
+					});
+
+					Blob newBlob = new Blob
+					{
+						BlobId = fileId.ToString(),
+						ContainerId = blobDto.ContainerId,
+						BlobName = blobDto.BlobName!,
+						Status = "Compressed",
+						ContentType = blobDto.ContentType!,
+						Size = fileBytes.Length,
+						CompressionTime = elapsedTime,
+						UploadDate = oldBlob.UploadDate
+					};
+
+					await _context.blobs.AddAsync(newBlob);
+					await _context.SaveChangesAsync();
+				}
 			}
 		}
 

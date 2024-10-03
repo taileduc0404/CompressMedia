@@ -20,5 +20,7 @@ namespace CompressMedia.DTOs
 		public ImageManipulationMode? ImageResizeMode { get; set; }
 		public ImageZoomMode? ImageZoomMode { get; set; }
 		public ImageAspectRatioMode? ImageAspectRatioMode { get; set; }
+		public int Width { get; set; }
+		public int Height { get; set; }
 	}
 }
