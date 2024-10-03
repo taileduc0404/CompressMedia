@@ -6,7 +6,7 @@ namespace CompressMedia.Repositories
 {
 	public class ImageResizer : IImageResizer
 	{
-		//private readonly IImageSharpService _imageSharpService;
+		////private readonly IImageSharpService _imageSharpService;
 		private readonly IImageFFmpegService _imageFFmpegService;
 
 		public ImageResizer(IImageFFmpegService imageFFmpegService)

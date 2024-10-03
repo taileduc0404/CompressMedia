@@ -127,7 +127,7 @@ namespace CompressMedia.Repositories
 						Height = blobDto.Height,
 						Mode = ImageResizeMode.Max
 					},
-					mimeType: blobDto.Data!.ContentType
+					mimeType: $"{blobDto.ContentType}"
 				);
 				Stream? resultStream = imageStream;
 				if (resizeResult.Result is not null && resizeResult.State == ImageProcessState.Done && resizeResult.Result.CanRead)
