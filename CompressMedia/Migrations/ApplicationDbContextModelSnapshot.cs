@@ -46,6 +46,9 @@ namespace CompressMedia.Migrations
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("UploadDate")
                         .HasColumnType("datetime2");
 
@@ -53,7 +56,9 @@ namespace CompressMedia.Migrations
 
                     b.HasIndex("ContainerId");
 
-                    b.ToTable("blobs");
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("Blobs");
                 });
 
             modelBuilder.Entity("CompressMedia.Models.BlobContainer", b =>
@@ -67,50 +72,125 @@ namespace CompressMedia.Migrations
                     b.Property<string>("ContainerName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("ContainerId");
 
+                    b.HasIndex("TenantId");
+
                     b.HasIndex("UserId");
 
-                    b.ToTable("blobContainers");
+                    b.ToTable("BlobContainers");
                 });
 
-            modelBuilder.Entity("CompressMedia.Models.Media", b =>
+            modelBuilder.Entity("CompressMedia.Models.Permission", b =>
                 {
-                    b.Property<int>("MediaId")
+                    b.Property<int>("PermissionId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MediaId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PermissionId"));
 
-                    b.Property<string>("CompressDuration")
+                    b.Property<string>("PermissionDescription")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("MediaPath")
+                    b.Property<string>("PermissionName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("MediaType")
-                        .HasColumnType("nvarchar(max)");
+                    b.HasKey("PermissionId");
 
-                    b.Property<long>("Size")
-                        .HasColumnType("bigint");
+                    b.ToTable("Permissions");
 
-                    b.Property<string>("Status")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("MediaId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("medias");
+                    b.HasData(
+                        new
+                        {
+                            PermissionId = 1,
+                            PermissionName = "CreateTenant"
+                        },
+                        new
+                        {
+                            PermissionId = 2,
+                            PermissionName = "CreateRole"
+                        },
+                        new
+                        {
+                            PermissionId = 3,
+                            PermissionName = "AssignPermissionToRole"
+                        },
+                        new
+                        {
+                            PermissionId = 4,
+                            PermissionName = "UploadMedia"
+                        },
+                        new
+                        {
+                            PermissionId = 5,
+                            PermissionName = "ResizeMedia"
+                        },
+                        new
+                        {
+                            PermissionId = 6,
+                            PermissionName = "CompressMedia"
+                        },
+                        new
+                        {
+                            PermissionId = 7,
+                            PermissionName = "AddUser"
+                        },
+                        new
+                        {
+                            PermissionId = 8,
+                            PermissionName = "DeleteUser"
+                        },
+                        new
+                        {
+                            PermissionId = 9,
+                            PermissionName = "DeleteMedia"
+                        },
+                        new
+                        {
+                            PermissionId = 10,
+                            PermissionName = "ViewMedia"
+                        },
+                        new
+                        {
+                            PermissionId = 11,
+                            PermissionName = "DeleteTenant"
+                        },
+                        new
+                        {
+                            PermissionId = 12,
+                            PermissionName = "DeleteRole"
+                        },
+                        new
+                        {
+                            PermissionId = 13,
+                            PermissionName = "DetailRole"
+                        },
+                        new
+                        {
+                            PermissionId = 14,
+                            PermissionName = "CreateContainer"
+                        },
+                        new
+                        {
+                            PermissionId = 15,
+                            PermissionName = "DeleteContainer"
+                        },
+                        new
+                        {
+                            PermissionId = 16,
+                            PermissionName = "GetAllUser"
+                        },
+                        new
+                        {
+                            PermissionId = 17,
+                            PermissionName = "EditProfile"
+                        });
                 });
 
             modelBuilder.Entity("CompressMedia.Models.Role", b =>
@@ -124,26 +204,46 @@ namespace CompressMedia.Migrations
                     b.Property<string>("RoleName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("RoleId");
 
-                    b.ToTable("roles");
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("Roles");
                 });
 
-            modelBuilder.Entity("CompressMedia.Models.TemporarySecretKey", b =>
+            modelBuilder.Entity("CompressMedia.Models.RolePermission", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("RoleId")
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<int>("PermissionId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("QrCodeUrl")
-                        .IsRequired()
+                    b.HasKey("RoleId", "PermissionId");
+
+                    b.HasIndex("PermissionId");
+
+                    b.ToTable("RolePermissions");
+                });
+
+            modelBuilder.Entity("CompressMedia.Models.Tenant", b =>
+                {
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CompanyName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                    b.Property<string>("TenantName")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.ToTable("temporarySecretKeys");
+                    b.HasKey("TenantId");
+
+                    b.ToTable("Tenants");
                 });
 
             modelBuilder.Entity("CompressMedia.Models.User", b =>
@@ -163,54 +263,158 @@ namespace CompressMedia.Migrations
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("RoleId")
+                        .HasColumnType("int");
+
                     b.Property<string>("SecretKey")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Username")
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("UserId");
 
+                    b.HasIndex("RoleId");
+
+                    b.HasIndex("TenantId");
+
                     b.HasIndex("Username")
                         .IsUnique()
                         .HasFilter("[Username] IS NOT NULL");
 
-                    b.ToTable("users");
+                    b.ToTable("Users");
 
                     b.HasData(
                         new
                         {
-                            UserId = "d079a7e0-fb1f-4ecd-89fe-403dca72d5ec",
-                            Email = "taileduc0404@gmail.com",
-                            FirstName = "Tai",
-                            LastName = "Le Duc",
-                            PasswordHash = "$2a$11$dIAZdS./tIWbjcKGw/j22ejB6MsdxAVz7oo8EFEhUgrNBVsVrs3y6",
-                            Username = "Le Duc Tai"
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            Email = "tai996507@gmail.com",
+                            FirstName = "Super",
+                            LastName = "Admin",
+                            PasswordHash = "$2a$11$ONAHJzk8391dWOqI1yoAnuIVFDL0GlPfTe0QMC5pv5DGCCNomCw4y",
+                            SecretKey = "68ade12d-c98f-428e-b939-a4c1a2ff89de",
+                            Username = "superadmin"
+                        });
+                });
+
+            modelBuilder.Entity("CompressMedia.Models.UserPermission", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("PermissionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserId", "PermissionId");
+
+                    b.HasIndex("PermissionId");
+
+                    b.ToTable("UserPermissions");
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 1
                         },
                         new
                         {
                             UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
-                            Email = "admin@gmail.com",
-                            FirstName = "Super",
-                            LastName = "Admin",
-                            PasswordHash = "$2a$11$imT/0TJnYXcuMOh8JFfPy.RsiRKNI2xFYwht3gzzZex4EHN1wTSyS",
-                            Username = "admin"
+                            PermissionId = 2
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 3
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 4
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 5
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 6
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 7
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 8
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 9
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 10
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 11
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 12
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 13
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 14
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 15
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 16
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 17
                         });
                 });
 
-            modelBuilder.Entity("UserRole", b =>
+            modelBuilder.Entity("PermissionRole", b =>
                 {
-                    b.Property<int>("RoleId")
+                    b.Property<int>("PermissionsPermissionId")
                         .HasColumnType("int");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("RolesRoleId")
+                        .HasColumnType("int");
 
-                    b.HasKey("RoleId", "UserId");
+                    b.HasKey("PermissionsPermissionId", "RolesRoleId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("RolesRoleId");
 
-                    b.ToTable("UserRole");
+                    b.ToTable("PermissionRole");
                 });
 
             modelBuilder.Entity("CompressMedia.Models.Blob", b =>
@@ -218,43 +422,111 @@ namespace CompressMedia.Migrations
                     b.HasOne("CompressMedia.Models.BlobContainer", "BlobContainer")
                         .WithMany("Blobs")
                         .HasForeignKey("ContainerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CompressMedia.Models.Tenant", "Tenant")
+                        .WithMany("Blobs")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("BlobContainer");
+
+                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("CompressMedia.Models.BlobContainer", b =>
                 {
+                    b.HasOne("CompressMedia.Models.Tenant", "Tenant")
+                        .WithMany("BlobContainers")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CompressMedia.Models.User", "User")
                         .WithMany("Containers")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Tenant");
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("CompressMedia.Models.Media", b =>
+            modelBuilder.Entity("CompressMedia.Models.Role", b =>
                 {
-                    b.HasOne("CompressMedia.Models.User", "User")
-                        .WithMany("Medias")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                    b.HasOne("CompressMedia.Models.Tenant", "Tenant")
+                        .WithMany("Roles")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("User");
+                    b.Navigation("Tenant");
                 });
 
-            modelBuilder.Entity("UserRole", b =>
+            modelBuilder.Entity("CompressMedia.Models.RolePermission", b =>
                 {
-                    b.HasOne("CompressMedia.Models.Role", null)
-                        .WithMany()
+                    b.HasOne("CompressMedia.Models.Permission", "Permission")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CompressMedia.Models.Role", "Role")
+                        .WithMany("RolePermissions")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("CompressMedia.Models.User", null)
-                        .WithMany()
+                    b.Navigation("Permission");
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("CompressMedia.Models.User", b =>
+                {
+                    b.HasOne("CompressMedia.Models.Role", "Roles")
+                        .WithMany("Users")
+                        .HasForeignKey("RoleId");
+
+                    b.HasOne("CompressMedia.Models.Tenant", "Tenant")
+                        .WithMany("Users")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Roles");
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("CompressMedia.Models.UserPermission", b =>
+                {
+                    b.HasOne("CompressMedia.Models.Permission", "Permission")
+                        .WithMany("UserPermissions")
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CompressMedia.Models.User", "User")
+                        .WithMany("UserPermissions")
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("PermissionRole", b =>
+                {
+                    b.HasOne("CompressMedia.Models.Permission", null)
+                        .WithMany()
+                        .HasForeignKey("PermissionsPermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CompressMedia.Models.Role", null)
+                        .WithMany()
+                        .HasForeignKey("RolesRoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -264,11 +536,36 @@ namespace CompressMedia.Migrations
                     b.Navigation("Blobs");
                 });
 
+            modelBuilder.Entity("CompressMedia.Models.Permission", b =>
+                {
+                    b.Navigation("RolePermissions");
+
+                    b.Navigation("UserPermissions");
+                });
+
+            modelBuilder.Entity("CompressMedia.Models.Role", b =>
+                {
+                    b.Navigation("RolePermissions");
+
+                    b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("CompressMedia.Models.Tenant", b =>
+                {
+                    b.Navigation("BlobContainers");
+
+                    b.Navigation("Blobs");
+
+                    b.Navigation("Roles");
+
+                    b.Navigation("Users");
+                });
+
             modelBuilder.Entity("CompressMedia.Models.User", b =>
                 {
                     b.Navigation("Containers");
 
-                    b.Navigation("Medias");
+                    b.Navigation("UserPermissions");
                 });
 #pragma warning restore 612, 618
         }

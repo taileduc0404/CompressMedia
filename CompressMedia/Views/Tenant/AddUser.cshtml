@@ -1,13 +1,13 @@
 ﻿@model CompressMedia.DTOs.RegisterDto
 
 @{
-    ViewBag.Title = "Register";
+    ViewBag.Title = "Add User";
     Layout = "_Layout";
 }
 
-<h2>Register</h2>
+<h2>Add User</h2>
 
-<form asp-action="Register" method="post">
+<form asp-action="AddUser" method="post">
     <div class="form-group">
         <label asp-for="Username"></label>
         <input asp-for="Username" class="form-control" />
@@ -33,5 +33,12 @@
         <input asp-for="Password" type="password" class="form-control" />
         <span asp-validation-for="Password" class="text-danger"></span>
     </div>
-    <button type="submit" class="btn btn-primary">Register</button>
+
+    <div class="form-group">
+        <label asp-for="SelectedRoleId">User Role</label>
+        <select asp-for="SelectedRoleId" class="form-control" asp-items="@(new SelectList(Model.Roles, "RoleId", "RoleName"))"></select>
+        <span asp-validation-for="SelectedRoleId" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add User</button>
 </form>

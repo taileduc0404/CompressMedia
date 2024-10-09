@@ -47,8 +47,19 @@
 								<ul class="dropdown-menu">
 									<li><a class="dropdown-item" asp-controller="User" asp-action="GetAllUser">GetAllUser</a></li>
 									<li><a class="dropdown-item" asp-controller="User" asp-action="EditProfile">Edit Profile</a></li>
-									@* <li><a class="dropdown-item" asp-controller="Media" asp-action="Index">Media</a></li> *@
+									<li><a class="dropdown-item" asp-controller="Tenant" asp-action="AddUser">Add User</a></li>
+								</ul>
+							</div>
+							<div class="dropdown">
+								<a class="btn btn-light dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+									Tenant Management
+								</a>
+
+								<ul class="dropdown-menu">
+
 									<li><a class="dropdown-item" asp-controller="BlobContainer" asp-action="Index">Container</a></li>
+									<li><a class="dropdown-item" asp-controller="Tenant" asp-action="Index">Tenant</a></li>
+									<li><a class="dropdown-item" asp-controller="Role" asp-action="Index">Role</a></li>
 
 								</ul>
 							</div>

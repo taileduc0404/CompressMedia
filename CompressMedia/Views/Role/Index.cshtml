@@ -1,0 +1,45 @@
+﻿@model IEnumerable<CompressMedia.DTOs.RoleDto>
+
+@{
+	ViewBag.Title = "Roles";
+	Layout = "_Layout";
+}
+
+<h2>Roles</h2>
+<button type="button" class="btn btn-primary">
+	<a asp-controller="Role" asp-action="CreateRole" style="text-decoration: none; color: white;"> Add New Role</a>
+</button>
+@if (Model == null)
+{
+	<p>Model is null. Please check the data passed to this view.</p>
+}
+else
+{
+	<table class="table table-bordered mt-4">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Action</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var role in Model)
+			{
+				<tr>
+					<th>@role.RoleName</th>
+					<td>
+						<a asp-controller="Role" asp-action="AssignPermission" asp-route-roleId="@role.RoleId" class="btn btn-outline-success">Assign Permission</a>
+						<a asp-controller="Role" asp-action="Detail" asp-route-roleId="@role.RoleId" class="btn btn-outline-info">Detail</a>
+						<a asp-controller="Role" asp-action="DeleteRole" asp-route-roleId="@role.RoleId" class="btn btn-outline-danger">Delete</a>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+<script>
+	setTimeout(function () {
+		location.reload();
+	}, 10000);
+</script>

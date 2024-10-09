@@ -1,0 +1,33 @@
+﻿@model IEnumerable<CompressMedia.DTOs.RolePermissionDto>
+
+@{
+    ViewBag.Title = "Role Permissions";
+    Layout = "_Layout";
+}
+
+<h2>Permissions for Role: @Model.FirstOrDefault()?.RoleName</h2>
+
+<table class="table table-bordered mt-4">
+    <thead>
+        <tr>
+            <th>Permission Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var rolePermission in Model)
+            {
+                <tr>
+                    <td>@rolePermission.PermissionName</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="2">No permissions assigned to this role.</td>
+            </tr>
+        }
+    </tbody>
+</table>

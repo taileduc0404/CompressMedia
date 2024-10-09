@@ -6,103 +6,120 @@ using Microsoft.EntityFrameworkCore;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
-using Newtonsoft.Json;
 
 namespace CompressMedia.Repositories
 {
-	public class BlobContainerService : IBlobContainerService
-	{
-		private readonly ApplicationDbContext _context;
-		private readonly IAuthService _authService;
-		private readonly BlobStorageDbContext _storageContext;
-		private readonly IGridFSBucket _gridFSBucket;
+    public class BlobContainerService : IBlobContainerService
+    {
+        private readonly ApplicationDbContext _context;
+        private readonly IUserService _userService;
+        private readonly BlobStorageDbContext _storageContext;
+        private readonly IGridFSBucket _gridFSBucket;
 
-		public BlobContainerService(ApplicationDbContext context, IAuthService authService, BlobStorageDbContext storageContext)
-		{
-			_context = context;
-			_authService = authService;
-			_storageContext = storageContext;
-			_gridFSBucket = new GridFSBucket(_storageContext._mongoDatabase);
-		}
+        public BlobContainerService(ApplicationDbContext context, BlobStorageDbContext storageContext, IUserService userService)
+        {
+            _context = context;
+            _storageContext = storageContext;
+            _gridFSBucket = new GridFSBucket(_storageContext._mongoDatabase);
+            _userService = userService;
+        }
 
-		/// <summary>
-		/// Xóa container
-		/// </summary>
-		/// <param name="name"></param>
-		/// <returns></returns>
-		public async Task<bool> DeleteAsync(int containerId)
-		{
-			BlobContainer? container = await _context.blobContainers.FirstOrDefaultAsync(c => c.ContainerId == containerId);
-			List<Blob> blobs = await _context.blobs.Where(x => x.ContainerId == containerId).ToListAsync();
-			if (container is null)
-			{
-				return false;
-			}
+        /// <summary>
+        /// Xóa container
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public async Task<bool> DeleteAsync(int containerId)
+        {
+            BlobContainer? container = await _context.BlobContainers.FirstOrDefaultAsync(c => c.ContainerId == containerId);
+            List<Blob> blobs = await _context.Blobs.Where(x => x.ContainerId == containerId).ToListAsync();
 
-			foreach (var blob in blobs)
-			{
-				var oldFileId = new ObjectId(blob.BlobId);
-				var filter = Builders<GridFSFileInfo<ObjectId>>.Filter.Eq(x => x.Id, oldFileId);
-				var oldFileEntry = await _gridFSBucket.FindAsync(filter);
-				var oldFile = oldFileEntry.FirstOrDefault();
-				if (oldFile != null)
-				{
-					await _gridFSBucket.DeleteAsync(oldFile.Id);
-				}
-			}
+            if (container is null)
+            {
+                return false;
+            }
 
-			_context.blobContainers.Remove(container);
-			await _context.SaveChangesAsync();
-			return true;
-		}
+            foreach (var blob in blobs)
+            {
+                var oldFileId = new ObjectId(blob.BlobId);
+                var filter = Builders<GridFSFileInfo<ObjectId>>.Filter.Eq(x => x.Id, oldFileId);
+                var oldFileEntry = await _gridFSBucket.FindAsync(filter);
+                var oldFile = oldFileEntry.FirstOrDefault();
+                if (oldFile != null)
+                {
+                    await _gridFSBucket.DeleteAsync(oldFile.Id);
+                }
+            }
 
-		/// <summary>
-		/// Get danh sách container
-		/// </summary>
-		/// <returns></returns>
-		public async Task<ICollection<BlobContainer>> GetAsync()
-		{
-			string cookie = _authService.GetLoginInfoFromCookie();
-			string cookieDecode = _authService.DecodeFromBase64(cookie);
-			LoginDto userInfo = JsonConvert.DeserializeObject<LoginDto>(cookieDecode);
-			User? user = await _context.users.FirstOrDefaultAsync(u => u.Username == userInfo.Username);
+            _context.BlobContainers.Remove(container);
+            await _context.SaveChangesAsync();
+            return true;
+        }
 
-			return await _context.blobContainers.Where(c => c.UserId == user!.UserId).ToListAsync();
-		}
+        /// <summary>
+        /// Get danh sách container
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ICollection<BlobContainer>> GetAsync()
+        {
+            string username = _userService.GetUserNameLoggedIn();
+            User? user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
 
-		/// <summary>
-		/// Lưu container
-		/// </summary>
-		/// <param name="containerDto"></param>
-		/// <returns></returns>
-		public async Task<string> SaveAsync(ContainerDto containerDto)
-		{
-			string cookie = _authService.GetLoginInfoFromCookie();
-			string cookieDecode = _authService.DecodeFromBase64(cookie);
-			LoginDto userInfo = JsonConvert.DeserializeObject<LoginDto>(cookieDecode);
-			User? user = await _context.users.FirstOrDefaultAsync(u => u.Username == userInfo.Username);
+            return await _context.BlobContainers.Where(c => c.UserId == user!.UserId).ToListAsync();
+        }
 
-			if (userInfo == null)
-			{
-				return "null";
-			}
+        /// <summary>
+        /// Lấy danh sách container của tenant
+        /// </summary>
+        /// <param name="tenantId"></param>
+        /// <returns></returns>
+        public async Task<ICollection<BlobContainer>> GetAsync(Guid? tenantId)
+        {
+            string username = _userService.GetUserNameLoggedIn();
+            User? user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
 
-			BlobContainer? findContainer = await _context.blobContainers.Where(u => u.User!.Username == user!.Username)
-													.SingleOrDefaultAsync(x => x.ContainerName == containerDto.ContainerName);
-			if (findContainer != null)
-			{
-				return "exist";
-			}
+            if (user!.TenantId is null)
+            {
+                return await _context.BlobContainers.Include(x => x.Tenant).ToListAsync();
+            }
+            return await _context.BlobContainers.Include(x => x.Tenant).Where(c => c.TenantId == tenantId).ToListAsync();
+        }
 
-			BlobContainer container = new BlobContainer
-			{
-				ContainerName = containerDto.ContainerName!,
-				UserId = user!.UserId,
-			};
+        /// <summary>
+        /// Lưu container
+        /// </summary>
+        /// <param name="containerDto"></param>
+        /// <returns></returns>
+        public async Task<string> SaveAsync(ContainerDto containerDto)
+        {
+            string username = _userService.GetUserNameLoggedIn();
+            User? user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
 
-			await _context.blobContainers.AddAsync(container);
-			await _context.SaveChangesAsync();
-			return "true";
-		}
-	}
+            if (user == null)
+            {
+                return "null";
+            }
+
+            BlobContainer? findContainer = await _context.BlobContainers.Where(u => u.TenantId == user!.TenantId)
+                                                    .SingleOrDefaultAsync(x => x.ContainerName == containerDto.ContainerName);
+            if (findContainer != null)
+            {
+                return "exist";
+            }
+
+            if (containerDto is not null)
+            {
+                BlobContainer container = new BlobContainer
+                {
+                    ContainerName = containerDto.ContainerName!,
+                    TenantId = user!.TenantId,
+                    UserId = user!.UserId,
+                };
+                await _context.BlobContainers.AddAsync(container);
+                await _context.SaveChangesAsync();
+            }
+
+            return "true";
+        }
+    }
 }

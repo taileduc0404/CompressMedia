@@ -16,6 +16,7 @@
 	<table class="table table-bordered mt-4">
 		<thead>
 			<tr>
+				<th>Tenant Name</th>
 				<th>Name</th>
 				<th>Action</th>
 			</tr>
@@ -24,6 +25,7 @@
 			@foreach (var container in Model)
 			{
 				<tr>
+					<td>@container.TenantName</td>
 					<td>@container.ContainerName</td>
 					<td>
 						<a asp-controller="Blob" asp-action="CreateBlob" asp-route-containerId="@container.ContainerId" class="btn btn-outline-primary"> Add New Blob</a>

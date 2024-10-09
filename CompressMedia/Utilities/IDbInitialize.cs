@@ -1,7 +1,7 @@
 ﻿namespace CompressMedia.Utilities
 {
-	public interface IDbInitialize
-	{
-		void Initialize();
-	}
+    public interface IDbInitialize
+    {
+        void Initialize();
+    }
 }

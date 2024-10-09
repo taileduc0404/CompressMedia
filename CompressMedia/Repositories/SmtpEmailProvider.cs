@@ -4,28 +4,28 @@ using System.Net.Mail;
 
 namespace CompressMedia.Repositories
 {
-	public class SmtpEmailProvider : IEmailProvider
-	{
-		private readonly IConfiguration _configuration;
+    public class SmtpEmailProvider : IEmailProvider
+    {
+        private readonly IConfiguration _configuration;
 
-		public SmtpEmailProvider(IConfiguration configuration)
-		{
-			_configuration = configuration;
-		}
+        public SmtpEmailProvider(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
 
-		public async Task SendEmailAsync(string fullName, string to, string qrCodeUrl)
-		{
-			SmtpClient smtpClient = new SmtpClient(_configuration["EmailSettings:SmtpServer"], int.Parse(_configuration["EmailSettings:Port"]!))
-			{
-				Credentials = new NetworkCredential(_configuration["EmailSettings:Sender"], _configuration["EmailSettings:Password"]),
-				EnableSsl = true,
-			};
+        public async Task SendEmailAsync(string fullName, string to, string qrCodeUrl)
+        {
+            SmtpClient smtpClient = new SmtpClient(_configuration["EmailSettings:SmtpServer"], int.Parse(_configuration["EmailSettings:Port"]!))
+            {
+                Credentials = new NetworkCredential(_configuration["EmailSettings:Sender"], _configuration["EmailSettings:Password"]),
+                EnableSsl = true,
+            };
 
-			var message = new MailMessage
-			{
-				From = new MailAddress(_configuration["EmailSettings:Sender"]!, "Compress Media Service"),
-				Subject = "QR Code",
-				Body = $@"
+            var message = new MailMessage
+            {
+                From = new MailAddress(_configuration["EmailSettings:Sender"]!, "Compress Media Service"),
+                Subject = "QR Code",
+                Body = $@"
         <!DOCTYPE html>
         <html lang=""en"">
         <head>
@@ -79,11 +79,11 @@ namespace CompressMedia.Repositories
             </div>
         </body>
         </html>",
-				IsBodyHtml = true
-			};
+                IsBodyHtml = true
+            };
 
-			message.To.Add(new MailAddress(to, fullName));
-			await smtpClient.SendMailAsync(message);
-		}
-	}
+            message.To.Add(new MailAddress(to, fullName));
+            await smtpClient.SendMailAsync(message);
+        }
+    }
 }

@@ -1,0 +1,19 @@
+﻿@model CompressMedia.DTOs.RoleDto
+
+@{
+    ViewData["Title"] = "Delete Role";
+}
+
+<h2>Delete Role</h2>
+
+@if (Model == null)
+{
+    <p>Model is null. Please check the data passed to this view.</p>
+}
+else
+{
+    <form asp-action="DeleteRole" asp-controller="Role" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="roleId" value="@Model.RoleId" />
+        <button class="btn btn-outline-secondary" type="submit">Delete</button>
+    </form>
+}
