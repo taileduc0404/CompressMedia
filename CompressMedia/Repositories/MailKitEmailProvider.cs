@@ -13,6 +13,13 @@ namespace CompressMedia.Repositories
             _configuration = configuration;
         }
 
+        /// <summary>
+        /// Gửi email
+        /// </summary>
+        /// <param name="fullName"></param>
+        /// <param name="to"></param>
+        /// <param name="qrCodeUrl"></param>
+        /// <returns></returns>
         public async Task SendEmailAsync(string fullName, string to, string qrCodeUrl)
         {
             var email = new MimeMessage();
@@ -102,7 +109,5 @@ namespace CompressMedia.Repositories
                 }
             }
         }
-
-
     }
 }

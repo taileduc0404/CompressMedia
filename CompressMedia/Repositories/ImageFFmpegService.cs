@@ -12,6 +12,13 @@ namespace CompressMedia.Repositories
             _mediaService = mediaService;
         }
 
+        /// <summary>
+        /// Đổi kích thước media
+        /// </summary>
+        /// <param name="inputStream"></param>
+        /// <param name="resizeArgs"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<Stream> ResizeAsync(Stream inputStream, ImageResizeArgs resizeArgs, CancellationToken cancellationToken = default)
         {
             string tempPath = Path.GetTempFileName();

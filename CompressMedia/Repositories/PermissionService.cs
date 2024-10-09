@@ -17,59 +17,31 @@ namespace CompressMedia.Repositories
             _userService = userService;
         }
 
-        public string CreatePermission(PermissionDto permissionDto)
-        {
-            if (permissionDto is null)
-            {
-                return null!;
-            }
-
-            Permission permission = new Permission()
-            {
-                PermissionId = permissionDto.PermissionId,
-                PermissionName = permissionDto.PermissionName,
-                PermissionDescription = permissionDto.PermissionDescription
-            };
-            _context.Add(permission);
-            _context.SaveChanges();
-            return "ok";
-        }
-
-        public string DeletePermission(int permissionId)
-        {
-            Permission? permission = _context.Permissions.SingleOrDefault(x => x.PermissionId == permissionId);
-            if (permission is null)
-            {
-                return null!;
-            }
-            _context.Remove(permissionId);
-            _context.SaveChanges();
-            return "ok";
-        }
-
+        /// <summary>
+        /// Lấy danh sách permission
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<Permission> GetAllPermissions()
         {
             return _context.Permissions.ToList() ?? null!;
         }
 
-        public Permission GetPermissionById(int permissionId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Permission GetPermissionByName(string permissionName)
-        {
-            throw new NotImplementedException();
-        }
-
+        /// <summary>
+        /// Lấy danh sách permission bằng roleId
+        /// </summary>
+        /// <param name="roleId"></param>
+        /// <returns></returns>
         public async Task<List<RolePermission>> GetPermissionByRoleId(int roleId)
         {
             return roleId > 0 ? await _context.RolePermissions.Where(x => x.RoleId == roleId).ToListAsync() : null!;
         }
 
+        /// <summary>
+        /// Lấy danh sách permission của user đang đăng nhập
+        /// </summary>
+        /// <returns></returns>
         public async Task<List<Permission>> GetUserPermissionsAsync()
         {
-
             string username = _userService.GetUserNameLoggedIn();
             User? userId = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
 
@@ -86,16 +58,6 @@ namespace CompressMedia.Repositories
                                                     .Distinct()
                                                     .ToList()!;
             return permissions!;
-        }
-
-        public bool PermissionExists(int permissionId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void UpdatePermission(PermissionDto permissionDto)
-        {
-            throw new NotImplementedException();
         }
     }
 }

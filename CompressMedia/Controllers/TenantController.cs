@@ -22,7 +22,6 @@ namespace CompressMedia.Controllers
             _roleService = roleService;
         }
 
-
         [HttpGet]
         [CustomPermission("CreateTenant")]
         public async Task<IActionResult> Index()

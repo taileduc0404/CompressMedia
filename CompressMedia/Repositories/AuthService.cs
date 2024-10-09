@@ -77,7 +77,6 @@ namespace CompressMedia.Services
 
         }
 
-
         /// <summary>
         /// Kiểm tra xem username hoặc email có tồn tại chưa
         /// </summary>
@@ -225,6 +224,10 @@ namespace CompressMedia.Services
             return "QR Code has send to your email";
         }
 
+        /// <summary>
+        /// Tạo data seed cho super admdin
+        /// </summary>
+        /// <returns></returns>
         public async Task SeedSuperAdmin()
         {
             if (_applicationDbContext.Users.Any(u => u.Username == "superadmin"))
@@ -238,6 +241,5 @@ namespace CompressMedia.Services
                 });
             }
         }
-
     }
 }
