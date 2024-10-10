@@ -5,6 +5,7 @@ using CompressMedia.PermissionRequirement;
 using CompressMedia.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
+using System.Security.Claims;
 
 namespace CompressMedia.Controllers
 {
@@ -20,11 +21,17 @@ namespace CompressMedia.Controllers
             _permissionService = permissionService;
         }
 
+        [CustomPermission("CreateContainer")]
         public async Task<IActionResult> Index()
         {
-            Guid? _tenantId = HttpContext.Items["TenantId"] as Guid?;
+			string? tenantIdString = HttpContext.User.FindFirstValue("TenantId");
+			Guid? _tenantId = null;
 
-            IEnumerable<Role> roles = await _roleService.GetAllRoles(_tenantId);
+			if (!string.IsNullOrEmpty(tenantIdString) && Guid.TryParse(tenantIdString, out Guid tenantId))
+			{
+				_tenantId = tenantId;
+			}
+			IEnumerable<Role> roles = await _roleService.GetAllRoles(_tenantId);
             if (roles is null)
             {
                 return View();
@@ -55,7 +62,15 @@ namespace CompressMedia.Controllers
         [CustomPermission("CreateRole")]
         public IActionResult CreateRole(RoleDto roleDto)
         {
-            string result = _roleService.CreateRole(roleDto);
+			string? tenantIdString = HttpContext.User.FindFirstValue("TenantId");
+			Guid? _tenantId = null;
+
+			if (!string.IsNullOrEmpty(tenantIdString) && Guid.TryParse(tenantIdString, out Guid tenantId))
+			{
+				_tenantId = tenantId;
+			}
+
+			string result = _roleService.CreateRole(roleDto, _tenantId);
 
             if (result == null)
             {
@@ -103,7 +118,6 @@ namespace CompressMedia.Controllers
         [CustomPermission("AssignPermissionToRole")]
         public IActionResult AssignPermission(int roleId)
         {
-
             IEnumerable<Permission> permissions = _permissionService.GetAllPermissions();
             if (permissions is null)
             {

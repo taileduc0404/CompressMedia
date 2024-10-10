@@ -4,6 +4,7 @@ using CompressMedia.Models;
 using CompressMedia.PermissionRequirement;
 using CompressMedia.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace CompressMedia.Controllers
 {
@@ -11,36 +12,26 @@ namespace CompressMedia.Controllers
     {
         private readonly IBlobContainerService _blobContainerService;
         private readonly INotyfService _notyfService;
-        private readonly IUserService _userService;
 
-        public BlobContainerController(IBlobContainerService blobContainerService, INotyfService notyfService, IUserService userService)
+        public BlobContainerController(IBlobContainerService blobContainerService, INotyfService notyfService)
         {
             _blobContainerService = blobContainerService;
             _notyfService = notyfService;
-            _userService = userService;
-        }
-
-        /// <summary>
-        /// Lỗi truy cập
-        /// </summary>
-        /// <returns></returns>  
-        public IActionResult AccessDenied()
-        {
-            return View();
         }
 
         [HttpGet]
+        [CustomPermission("CreateContainer")]
         public async Task<IActionResult> Index()
         {
-            string userName = _userService.GetUserNameLoggedIn();
-            if (userName == null)
-            {
-                return RedirectToAction("AccessDenied");
-            }
+			string? tenantIdString = HttpContext.User.FindFirstValue("TenantId");
+			Guid? _tenantId = null;
 
-            Guid? _tenantId = HttpContext.Items["TenantId"] as Guid?;
+			if (!string.IsNullOrEmpty(tenantIdString) && Guid.TryParse(tenantIdString, out Guid tenantId))
+			{
+				_tenantId = tenantId;
+			}
 
-            IEnumerable<BlobContainer> blobContainers = await _blobContainerService.GetAsync(_tenantId);
+			IEnumerable<BlobContainer> blobContainers = await _blobContainerService.GetAsync(_tenantId);
 
             if (blobContainers == null || !blobContainers.Any())
             {
@@ -62,11 +53,6 @@ namespace CompressMedia.Controllers
         [CustomPermission("CreateContainer")]
         public IActionResult CreateContainer()
         {
-            string userName = _userService.GetUserNameLoggedIn();
-            if (userName == null)
-            {
-                return RedirectToAction("AccessDenied");
-            }
             return View();
         }
 
@@ -101,12 +87,6 @@ namespace CompressMedia.Controllers
         {
             try
             {
-                string userName = _userService.GetUserNameLoggedIn();
-                if (userName == null)
-                {
-                    return RedirectToAction("AccessDenied");
-                }
-
                 ContainerDto containerDto = new ContainerDto
                 {
                     ContainerId = containerId
@@ -127,7 +107,6 @@ namespace CompressMedia.Controllers
         {
             try
             {
-
                 if (containerId != 0)
                 {
                     bool result = await _blobContainerService.DeleteAsync(containerId);

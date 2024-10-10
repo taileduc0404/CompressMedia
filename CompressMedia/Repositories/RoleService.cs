@@ -44,12 +44,10 @@ namespace CompressMedia.Repositories
             return "Permissions updated.";
         }
 
-        public string CreateRole(RoleDto roleDto)
+        public string CreateRole(RoleDto roleDto, Guid? tenantId)
         {
             if (roleDto is not null)
             {
-                var tenantId = (Guid?)_httpContext.HttpContext?.Items["TenantId"];
-
                 Role role = new Role()
                 {
                     RoleName = roleDto.RoleName,

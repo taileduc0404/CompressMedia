@@ -5,7 +5,7 @@ namespace CompressMedia.Repositories.Interfaces
 {
     public interface IRoleService
     {
-        string CreateRole(RoleDto roleDto);
+        string CreateRole(RoleDto roleDto, Guid? tenantId);
         void UpdateRole(RoleDto roleDto);
         string DeleteRole(int roleId);
         Task<IEnumerable<Role>> GetAllRoles(Guid? tenantId);

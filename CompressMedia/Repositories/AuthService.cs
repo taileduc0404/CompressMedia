@@ -7,7 +7,10 @@ using CompressMedia.Repositories;
 using CompressMedia.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace CompressMedia.Services
 {
@@ -192,11 +195,32 @@ namespace CompressMedia.Services
             bool isValid = twoFactorAuthenticator.ValidateTwoFactorPIN(qrCodeDataBytes, loginDto.OtpCode!, TimeSpan.FromSeconds(3));
             if (isValid)
             {
-
                 string userInfoEncode = EncodeStringToBase64(loginDto);
                 SetLoginCookie(userInfoEncode);
+
+                List<Claim> claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, user.Username!),
+                    new Claim("TenantId", user.TenantId.ToString()!)
+                };
+
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                var authProperties = new AuthenticationProperties
+                {
+                    IsPersistent = true,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(60)
+                };
+
+                HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(claimsIdentity),
+                    authProperties
+                );
                 return true;
             }
+
+
             return false;
         }
 

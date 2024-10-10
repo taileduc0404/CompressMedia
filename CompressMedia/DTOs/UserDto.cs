@@ -40,6 +40,7 @@ namespace CompressMedia.DTOs
           ErrorMessage = "Password must be between 6 and 30 characters long and include at least one uppercase letter, one lowercase letter, one digit, and one special character.")]
         public string? ConfirmNewPassword { get; set; }
 
+        public string? FullName { get; set; }
         public string? SecretKey { get; set; }
 
     }

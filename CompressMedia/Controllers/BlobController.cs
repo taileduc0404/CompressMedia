@@ -6,43 +6,39 @@ using CompressMedia.PermissionRequirement;
 using CompressMedia.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace CompressMedia.Controllers
 {
     public class BlobController : Controller
     {
         private readonly IBlobService _blobService;
-        private readonly IUserService _userService;
         private readonly INotyfService _notyfService;
         private readonly ApplicationDbContext _context;
         private readonly ICompressService _compressService;
 
-        public BlobController(IBlobService blobService, IUserService userService, INotyfService notyfService, ApplicationDbContext context, ICompressService compressService)
+        public BlobController(IBlobService blobService, INotyfService notyfService, ApplicationDbContext context, ICompressService compressService)
         {
             _blobService = blobService;
-            _userService = userService;
             _notyfService = notyfService;
             _context = context;
             _compressService = compressService;
         }
 
-        public IActionResult AccessDenied()
-        {
-            return View();
-        }
-
         [HttpGet]
+        [CustomPermission("CreateContainer")]
         public async Task<IActionResult> Index(int containerId)
         {
 
-            Guid? tenantId = HttpContext.Items["TenantId"] as Guid?;
-            string userName = _userService.GetUserNameLoggedIn();
-            if (userName == null)
-            {
-                return RedirectToAction("AccessDenied");
-            }
+			string? tenantIdString = HttpContext.User.FindFirstValue("TenantId");
+			Guid? _tenantId = null;
 
-            IEnumerable<Blob> blobList = await _blobService.GetListBlobAsync(containerId);
+			if (!string.IsNullOrEmpty(tenantIdString) && Guid.TryParse(tenantIdString, out Guid tenantId))
+			{
+				_tenantId = tenantId;
+			}
+
+			IEnumerable<Blob> blobList = await _blobService.GetListBlobAsync(containerId);
 
             if (blobList == null)
             {
@@ -67,13 +63,6 @@ namespace CompressMedia.Controllers
         [CustomPermission("UploadMedia")]
         public IActionResult CreateBlob(int containerId)
         {
-            Guid? tenantId = HttpContext.Items["TenantId"] as Guid?;
-            string userName = _userService.GetUserNameLoggedIn();
-            if (userName == null)
-            {
-                return RedirectToAction("AccessDenied");
-            }
-
             BlobDto blobDto = new BlobDto
             {
                 ContainerId = containerId,
@@ -103,13 +92,6 @@ namespace CompressMedia.Controllers
         [CustomPermission("CompressMedia")]
         public IActionResult Compress(string blobId, string blobName, string contentType, int containerId)
         {
-            Guid? tenantId = HttpContext.Items["TenantId"] as Guid?;
-            string userName = _userService.GetUserNameLoggedIn();
-            if (userName == null)
-            {
-                return RedirectToAction("AccessDenied");
-            }
-
             BlobDto blobDto = new BlobDto
             {
                 BlobId = blobId,
@@ -156,14 +138,15 @@ namespace CompressMedia.Controllers
         [CustomPermission("DeleteMedia")]
         public async Task<IActionResult> DeleteBlobGet(string blobId, int containerId)
         {
-            Guid? tenantId = HttpContext.Items["TenantId"] as Guid?;
-            string userName = _userService.GetUserNameLoggedIn();
-            if (userName == null)
-            {
-                return RedirectToAction("AccessDenied");
-            }
+			string? tenantIdString = HttpContext.User.FindFirstValue("TenantId");
+			Guid? _tenantId = null;
 
-            Blob? blob = await _context.Blobs.SingleOrDefaultAsync(x => x.BlobId == blobId);
+			if (!string.IsNullOrEmpty(tenantIdString) && Guid.TryParse(tenantIdString, out Guid tenantId))
+			{
+				_tenantId = tenantId;
+			}
+
+			Blob? blob = await _context.Blobs.SingleOrDefaultAsync(x => x.BlobId == blobId);
 
             if (blob is null)
             {
@@ -237,13 +220,6 @@ namespace CompressMedia.Controllers
         [CustomPermission("ResizeMedia")]
         public IActionResult Resize(string blobId, string blobName, string contentType, int containerId)
         {
-            Guid? tenantId = HttpContext.Items["TenantId"] as Guid?;
-            string userName = _userService.GetUserNameLoggedIn();
-            if (userName == null)
-            {
-                return RedirectToAction("AccessDenied");
-            }
-
             BlobDto blobDto = new BlobDto
             {
                 BlobId = blobId,

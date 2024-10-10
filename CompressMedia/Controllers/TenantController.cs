@@ -4,6 +4,7 @@ using CompressMedia.Models;
 using CompressMedia.PermissionRequirement;
 using CompressMedia.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace CompressMedia.Controllers
 {
@@ -66,8 +67,14 @@ namespace CompressMedia.Controllers
         [CustomPermission("AddUser")]
         public async Task<IActionResult> AddUser()
         {
-            Guid? _tenantId = HttpContext.Items["TenantId"] as Guid?;
-            IEnumerable<Role> roles = await _roleService.GetAllRoles(_tenantId);
+			string? tenantIdString = HttpContext.User.FindFirstValue("TenantId");
+			Guid? _tenantId = null;
+
+			if (!string.IsNullOrEmpty(tenantIdString) && Guid.TryParse(tenantIdString, out Guid tenantId))
+			{
+				_tenantId = tenantId;
+			}
+			IEnumerable<Role> roles = await _roleService.GetAllRoles(_tenantId);
 
             var registerDto = new RegisterDto
             {
@@ -86,7 +93,7 @@ namespace CompressMedia.Controllers
                 return View(nameof(AddUser));
             }
 
-            Guid? _tenantId = HttpContext.Items["TenantId"] as Guid?;
+            Guid? _tenantId = Guid.Parse(HttpContext.User.FindFirstValue("TenantId")!);
             var result = await _tenantService.AddUser(dto, _tenantId);
 
             switch (result)

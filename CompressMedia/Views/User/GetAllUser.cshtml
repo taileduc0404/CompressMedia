@@ -1,15 +1,49 @@
 ﻿@model IEnumerable<CompressMedia.DTOs.UserDto>
 
 @{
-	ViewBag.Title = "Get Users";
+	ViewBag.Title = "Users";
 	Layout = "_Layout";
 }
 
-<h2>Get Users</h2>
+<h2>Users</h2>
+@* <button type="button" class="btn btn-primary">
+	<a asp-controller="Role" asp-action="CreateRole" style="text-decoration: none; color: white;"> Add New Role</a>
+</button> *@
+@if (Model == null)
+{
+	<p>Model is null. Please check the data passed to this view.</p>
+}
+else
+{
+	<table class="table table-bordered mt-4">
+		<thead>
+			<tr>
+				<th>Username</th>
+				<th>FullName</th>
+				<th>Email</th>
+				<th>Action</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var user in Model)
+			{
+				<tr>
+					<th>@user.Username</th>
+					<th>@user.FullName</th>
+					<th>@user.Email</th>
+					<td>
+						<a asp-controller="Role" asp-action="AssignPermission" asp-route-roleId="@user.Username" class="btn btn-outline-success">Lock</a>
+						@* <a asp-controller="Role" asp-action="Detail" asp-route-roleId="@user.Username" class="btn btn-outline-info">Detail</a> *@
+						<a asp-controller="Role" asp-action="DeleteRole" asp-route-roleId="@user.Username" class="btn btn-outline-danger">Delete</a>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
 
-<ul class="list-group">
-	@foreach (var user in Model)
-	{
-		<li class="list-group-item">@user.Username</li>
-	}
-</ul>
+<script>
+	setTimeout(function () {
+		location.reload();
+	}, 10000);
+</script>

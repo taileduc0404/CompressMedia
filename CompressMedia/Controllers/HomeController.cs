@@ -9,14 +9,12 @@ namespace CompressMedia.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
         private readonly IAuthService _authService;
         private readonly INotyfService _notyfService;
 
-        public HomeController(IAuthService authService, ILogger<HomeController> logger, INotyfService notyfService)
+        public HomeController(IAuthService authService, INotyfService notyfService)
         {
             _authService = authService;
-            _logger = logger;
             _notyfService = notyfService;
         }
 

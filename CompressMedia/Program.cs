@@ -4,6 +4,7 @@ using CompressMedia.Middlewares.Extension;
 using CompressMedia.Repositories;
 using CompressMedia.Repositories.Interfaces;
 using CompressMedia.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 
@@ -19,6 +20,14 @@ namespace CompressMedia
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
+
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/Home/Login";
+                    options.LogoutPath = "/Home/Logout";
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+                });
 
 
             builder.Services.AddSingleton<BlobStorageDbContext>(provider =>

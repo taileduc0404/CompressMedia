@@ -29,9 +29,9 @@ namespace CompressMedia.PermissionRequirement
                 return;
             }
 
-            User? userLogin = _context!.Users.FirstOrDefault(u => u.Username == userName);
+            User? userLoggedIn = _context!.Users.FirstOrDefault(u => u.Username == userName);
 
-            if (userLogin == null)
+            if (userLoggedIn == null)
             {
                 context.Result = new ForbidResult();
                 return;
@@ -39,7 +39,7 @@ namespace CompressMedia.PermissionRequirement
 
             var userPermissions = _context.UserPermissions
                 .Include(up => up.Permission)
-                .Where(up => up.UserId == userLogin.UserId)
+                .Where(up => up.UserId == userLoggedIn.UserId)
                 .Select(up => up.Permission)
                 .ToList();
 
