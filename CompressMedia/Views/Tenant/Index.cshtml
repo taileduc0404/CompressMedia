@@ -22,8 +22,9 @@
 			<tr>
 				<th>@tenant.TenantName</th>
 				<td>
-					<a asp-controller="Tenant" asp-action="ViewBlob" asp-route-blobId="@tenant.TenantId" class="btn btn-outline-info">Edit</a>
-					<a asp-controller="Tenant" asp-action="DeleteBlob" asp-route-blobId="@tenant.TenantId" class="btn btn-outline-danger">Delete</a>
+					<a asp-controller="Container" asp-action="Index" asp-route-tenantId="@tenant.TenantId" class="btn btn-outline-info">Containers</a>
+					<a asp-controller="User" asp-action="GetAllUserTenant" asp-route-tenantId="@tenant.TenantId" class="btn btn-outline-info">Users</a>
+					<a asp-controller="Tenant" asp-action="DeleteTenant" asp-route-tenantId="@tenant.TenantId" class="btn btn-outline-danger">Delete</a>
 				</td>
 			</tr>
 		}

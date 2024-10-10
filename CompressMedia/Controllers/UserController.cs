@@ -19,6 +19,31 @@ namespace CustomAuth.Controllers
 			_notyfService = notyfService;
 		}
 
+
+		[HttpGet]
+		[CustomPermission("GetAllUser")]
+		public async Task<IActionResult> GetAllUserTenant(Guid? tenantId)
+		{
+			IEnumerable<User> users;
+			if (tenantId is not null)
+			{
+				users = await _userService.GetAllUser(tenantId);
+			}
+			else
+			{
+				users = await _userService.GetAllUser(tenantId);
+			}
+
+			IEnumerable<UserDto> usersDto = users.Select(user => new UserDto
+			{
+				Username = user.Username,
+				Email = user.Email,
+				FullName = user.FirstName + " " + user.LastName,
+			});
+
+			return View(usersDto);
+		}
+
 		[HttpGet]
 		[CustomPermission("GetAllUser")]
 		public async Task<IActionResult> GetAllUser()
@@ -50,7 +75,6 @@ namespace CustomAuth.Controllers
 
 			return View(usersDto);
 		}
-
 
 		[HttpGet]
 		[CustomPermission("EditProfile")]

@@ -8,21 +8,21 @@ using System.Security.Claims;
 
 namespace CompressMedia.Controllers
 {
-    public class BlobContainerController : Controller
-    {
-        private readonly IBlobContainerService _blobContainerService;
-        private readonly INotyfService _notyfService;
+	public class BlobContainerController : Controller
+	{
+		private readonly IBlobContainerService _blobContainerService;
+		private readonly INotyfService _notyfService;
 
-        public BlobContainerController(IBlobContainerService blobContainerService, INotyfService notyfService)
-        {
-            _blobContainerService = blobContainerService;
-            _notyfService = notyfService;
-        }
+		public BlobContainerController(IBlobContainerService blobContainerService, INotyfService notyfService)
+		{
+			_blobContainerService = blobContainerService;
+			_notyfService = notyfService;
+		}
 
-        [HttpGet]
-        [CustomPermission("CreateContainer")]
-        public async Task<IActionResult> Index()
-        {
+		[HttpGet]
+		[CustomPermission("CreateContainer")]
+		public async Task<IActionResult> Index()
+		{
 			string? tenantIdString = HttpContext.User.FindFirstValue("TenantId");
 			Guid? _tenantId = null;
 
@@ -33,97 +33,97 @@ namespace CompressMedia.Controllers
 
 			IEnumerable<BlobContainer> blobContainers = await _blobContainerService.GetAsync(_tenantId);
 
-            if (blobContainers == null || !blobContainers.Any())
-            {
-                _notyfService.Error("No blob container.");
-                return View(Enumerable.Empty<ContainerDto>());
-            }
+			if (blobContainers == null || !blobContainers.Any())
+			{
+				_notyfService.Error("No blob container.");
+				return View(Enumerable.Empty<ContainerDto>());
+			}
 
-            IEnumerable<ContainerDto> containerDtos = blobContainers.Select(container => new ContainerDto
-            {
-                ContainerId = container.ContainerId,
-                ContainerName = container.ContainerName,
-                TenantName = _tenantId is not null ? container.Tenant!.TenantName : "No Tenant"
-            });
+			IEnumerable<ContainerDto> containerDtos = blobContainers.Select(container => new ContainerDto
+			{
+				ContainerId = container.ContainerId,
+				ContainerName = container.ContainerName,
+				TenantName = container.Tenant?.TenantName
+			});
 
-            return View(containerDtos);
-        }
+			return View(containerDtos);
+		}
 
-        [HttpGet]
-        [CustomPermission("CreateContainer")]
-        public IActionResult CreateContainer()
-        {
-            return View();
-        }
+		[HttpGet]
+		[CustomPermission("CreateContainer")]
+		public IActionResult CreateContainer()
+		{
+			return View();
+		}
 
-        [HttpPost]
-        [CustomPermission("CreateContainer")]
-        public async Task<IActionResult> CreateContainer(ContainerDto containerDto)
-        {
-            if (containerDto != null)
-            {
-                string result = await _blobContainerService.SaveAsync(containerDto);
+		[HttpPost]
+		[CustomPermission("CreateContainer")]
+		public async Task<IActionResult> CreateContainer(ContainerDto containerDto)
+		{
+			if (containerDto != null)
+			{
+				string result = await _blobContainerService.SaveAsync(containerDto);
 
-                switch (result)
-                {
-                    case "null":
-                        _notyfService.Error("Access Dinied");
-                        return RedirectToAction("Index");
-                    case "exist":
-                        _notyfService.Error("Container Name exist. Enter other Container Name");
-                        return RedirectToAction("Index");
-                }
+				switch (result)
+				{
+					case "null":
+						_notyfService.Error("Access Dinied");
+						return RedirectToAction("Index");
+					case "exist":
+						_notyfService.Error("Container Name exist. Enter other Container Name");
+						return RedirectToAction("Index");
+				}
 
-                _notyfService.Success("Create container successfully.");
-                return RedirectToAction("Index");
-            }
-            return RedirectToAction("Index");
-        }
+				_notyfService.Success("Create container successfully.");
+				return RedirectToAction("Index");
+			}
+			return RedirectToAction("Index");
+		}
 
-        [HttpGet]
-        [ActionName("DeleteContainer")]
-        [CustomPermission("DeleteContainer")]
-        public IActionResult DeleteContainerGet(int containerId)
-        {
-            try
-            {
-                ContainerDto containerDto = new ContainerDto
-                {
-                    ContainerId = containerId
-                };
-                return View(containerDto);
-            }
-            catch (InvalidOperationException)
-            {
-                _notyfService.Error("You cannot do this action");
-                return RedirectToAction("Index");
-            }
-        }
+		[HttpGet]
+		[ActionName("DeleteContainer")]
+		[CustomPermission("DeleteContainer")]
+		public IActionResult DeleteContainerGet(int containerId)
+		{
+			try
+			{
+				ContainerDto containerDto = new ContainerDto
+				{
+					ContainerId = containerId
+				};
+				return View(containerDto);
+			}
+			catch (InvalidOperationException)
+			{
+				_notyfService.Error("You cannot do this action");
+				return RedirectToAction("Index");
+			}
+		}
 
-        [HttpPost]
-        [ActionName("DeleteContainer")]
-        [CustomPermission("DeleteContainer")]
-        public async Task<IActionResult> DeleteContainerPost(int containerId)
-        {
-            try
-            {
-                if (containerId != 0)
-                {
-                    bool result = await _blobContainerService.DeleteAsync(containerId);
-                    if (result is false)
-                    {
-                        _notyfService.Error("Delete container failed.");
-                    }
-                    _notyfService.Success("Delete container successfully.");
-                    return RedirectToAction("Index");
-                }
-                return RedirectToAction("Index");
-            }
-            catch (InvalidOperationException)
-            {
-                _notyfService.Error("You cannot do this action");
-                return RedirectToAction("Index");
-            }
-        }
-    }
+		[HttpPost]
+		[ActionName("DeleteContainer")]
+		[CustomPermission("DeleteContainer")]
+		public async Task<IActionResult> DeleteContainerPost(int containerId)
+		{
+			try
+			{
+				if (containerId != 0)
+				{
+					bool result = await _blobContainerService.DeleteAsync(containerId);
+					if (result is false)
+					{
+						_notyfService.Error("Delete container failed.");
+					}
+					_notyfService.Success("Delete container successfully.");
+					return RedirectToAction("Index");
+				}
+				return RedirectToAction("Index");
+			}
+			catch (InvalidOperationException)
+			{
+				_notyfService.Error("You cannot do this action");
+				return RedirectToAction("Index");
+			}
+		}
+	}
 }

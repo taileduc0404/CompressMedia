@@ -5,7 +5,6 @@ using CompressMedia.Models;
 using CompressMedia.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using System.Collections.Generic;
 
 namespace CompressMedia.Repositories
 {
