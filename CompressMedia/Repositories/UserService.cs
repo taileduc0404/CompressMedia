@@ -75,26 +75,17 @@ namespace CompressMedia.Repositories
 		/// <returns></returns>
 		public async Task<IEnumerable<User>> GetAllUser(Guid? tenantId)
 		{
-			bool isAuthen = _authService.IsUserAuthenticated();
-			if (!isAuthen)
-			{
-				return null!;
-			}
-
 			IEnumerable<User> users;
 			if (tenantId == null)
 			{
-				users = await _context.Users.ToListAsync();
-
+				users = await _context.Users.Include(x => x.Role).ToListAsync();
 			}
 			else
 			{
-				users = await _context.Users.Where(x => x.TenantId == tenantId).ToListAsync();
-
+				users = await _context.Users.Include(x => x.Role).Where(x => x.TenantId == tenantId).ToListAsync();
 			}
 
 			return users;
-
 		}
 
 		/// <summary>

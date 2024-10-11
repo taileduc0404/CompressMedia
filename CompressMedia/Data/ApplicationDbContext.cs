@@ -21,7 +21,6 @@ namespace CompressMedia.Data
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
-			// Thiết lập khóa chính cho các bảng
 			modelBuilder.Entity<BlobContainer>().HasKey(c => c.ContainerId);
 			modelBuilder.Entity<Blob>().HasKey(b => b.BlobId);
 			modelBuilder.Entity<User>().HasKey(u => u.UserId);
@@ -60,8 +59,6 @@ namespace CompressMedia.Data
 				.WithMany(p => p.RolePermissions)
 				.HasForeignKey(rp => rp.PermissionId);
 
-
-			// Thiết lập quan hệ 1-nhiều cho BlobContainer và Blob
 			modelBuilder.Entity<BlobContainer>()
 				.HasOne(bc => bc.User)
 				.WithMany(u => u.Containers)
@@ -80,7 +77,6 @@ namespace CompressMedia.Data
 				.HasForeignKey(b => b.TenantId)
 				.OnDelete(DeleteBehavior.Restrict);
 
-			// Thiết lập quan hệ Tenant với các entity khác
 			modelBuilder.Entity<BlobContainer>()
 				.HasOne(bc => bc.Tenant)
 				.WithMany(t => t.BlobContainers)
@@ -99,7 +95,6 @@ namespace CompressMedia.Data
 				.HasForeignKey(r => r.TenantId)
 				.OnDelete(DeleteBehavior.Restrict);
 
-			// Thiết lập unique cho Username
 			modelBuilder.Entity<User>()
 				.HasIndex(u => u.Username)
 				.IsUnique();

@@ -57,18 +57,6 @@ namespace CompressMedia.Repositories
 		}
 
 		/// <summary>
-		/// Get danh sách container
-		/// </summary>
-		/// <returns></returns>
-		public async Task<ICollection<BlobContainer>> GetAsync()
-		{
-			string username = _userService.GetUserNameLoggedIn();
-			User? user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
-
-			return await _context.BlobContainers.Where(c => c.UserId == user!.UserId).ToListAsync();
-		}
-
-		/// <summary>
 		/// Lấy danh sách container của tenant
 		/// </summary>
 		/// <param name="tenantId"></param>

@@ -9,15 +9,17 @@ namespace CompressMedia.Repositories
 	public class RoleService : IRoleService
 	{
 		private readonly ApplicationDbContext _context;
-		private readonly IHttpContextAccessor _httpContext;
+		private readonly IHttpContextAccessor _httpContextAccessor;
 		private readonly IUserService _userService;
 
 		public RoleService(ApplicationDbContext context, IHttpContextAccessor httpContext, IUserService userService)
 		{
 			_context = context;
-			_httpContext = httpContext;
+			_httpContextAccessor = httpContext;
 			_userService = userService;
 		}
+
+		private HttpContext HttpContext => _httpContextAccessor.HttpContext!;
 
 		public async Task<string> AssignPermissionsToRole(int roleId, List<int> permissionSelectedId)
 		{

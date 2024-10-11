@@ -7,7 +7,6 @@ namespace CompressMedia.Repositories.Interfaces
 	{
 		Task<string> SaveAsync(ContainerDto containerDto);
 		Task<bool> DeleteAsync(int containerId);
-		Task<ICollection<BlobContainer>> GetAsync();
 		Task<ICollection<BlobContainer>> GetAsync(Guid? tenantId);
 	}
 }

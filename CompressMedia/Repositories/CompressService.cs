@@ -27,6 +27,7 @@ namespace CompressMedia.Repositories
 			_gridFSBucket = new GridFSBucket(_storageContext._mongoDatabase);
 			_imageResizer = imageResizer;
 		}
+	
 		/// <summary>
 		/// Resize hoặc nén media dùng ffmpeg
 		/// </summary>

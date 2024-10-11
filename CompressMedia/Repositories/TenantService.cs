@@ -179,6 +179,7 @@ namespace CompressMedia.Repositories
 				{
 					UserId = Guid.NewGuid().ToString(),
 					TenantId = tenantId,
+					RoleId = dto.SelectedRoleId,
 					Username = dto.Username,
 					FirstName = dto.FirstName,
 					LastName = dto.LastName,

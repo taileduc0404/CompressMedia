@@ -6,7 +6,7 @@
 		public Guid? TenantId { get; set; }
 		public Tenant? Tenant { get; set; }
 		public int? RoleId { get; set; }
-		public Role? Roles { get; set; }
+		public virtual Role? Role { get; set; }
 		public string? Username { get; set; }
 		public string? FirstName { get; set; }
 		public string? LastName { get; set; }

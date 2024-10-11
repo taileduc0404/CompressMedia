@@ -31,7 +31,7 @@ namespace CustomAuth.Controllers
 			}
 			else
 			{
-				users = await _userService.GetAllUser(tenantId);
+				users = await _userService.GetAllUser(null);
 			}
 
 			IEnumerable<UserDto> usersDto = users.Select(user => new UserDto
@@ -39,6 +39,7 @@ namespace CustomAuth.Controllers
 				Username = user.Username,
 				Email = user.Email,
 				FullName = user.FirstName + " " + user.LastName,
+				RoleName = user.Role?.RoleName
 			});
 
 			return View(usersDto);
@@ -63,7 +64,7 @@ namespace CustomAuth.Controllers
 			}
 			else
 			{
-				users = await _userService.GetAllUser(_tenantId);
+				users = await _userService.GetAllUser(null);
 			}
 
 			IEnumerable<UserDto> usersDto = users.Select(user => new UserDto
@@ -71,6 +72,7 @@ namespace CustomAuth.Controllers
 				Username = user.Username,
 				Email = user.Email,
 				FullName = user.FirstName + " " + user.LastName,
+				RoleName = user.Role?.RoleName
 			});
 
 			return View(usersDto);
