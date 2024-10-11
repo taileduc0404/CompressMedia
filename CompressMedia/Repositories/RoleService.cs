@@ -9,17 +9,13 @@ namespace CompressMedia.Repositories
 	public class RoleService : IRoleService
 	{
 		private readonly ApplicationDbContext _context;
-		private readonly IHttpContextAccessor _httpContextAccessor;
 		private readonly IUserService _userService;
 
-		public RoleService(ApplicationDbContext context, IHttpContextAccessor httpContext, IUserService userService)
+		public RoleService(ApplicationDbContext context, IUserService userService)
 		{
 			_context = context;
-			_httpContextAccessor = httpContext;
 			_userService = userService;
 		}
-
-		private HttpContext HttpContext => _httpContextAccessor.HttpContext!;
 
 		public async Task<string> AssignPermissionsToRole(int roleId, List<int> permissionSelectedId)
 		{
@@ -39,6 +35,23 @@ namespace CompressMedia.Repositories
 						RoleId = roleId,
 						PermissionId = permissionId
 					});
+				}
+
+			}
+
+			List<User> users = _context.Users.Include(x => x.UserPermissions).Where(x => x.RoleId == roleId).ToList();
+			foreach (User user in users)
+			{
+				foreach (int permissionId in permissionSelectedId)
+				{
+					if (!user.UserPermissions!.Any(x => x.PermissionId == permissionId))
+					{
+						user.UserPermissions!.Add(new UserPermission
+						{
+							UserId = user.UserId,
+							PermissionId = permissionId
+						});
+					}
 				}
 			}
 

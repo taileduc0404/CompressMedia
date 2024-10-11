@@ -43,6 +43,7 @@ namespace CompressMedia.Repositories
 					{
 						UserId = Guid.NewGuid().ToString(),
 						TenantId = tenantDto.TenantId,
+						//RoleId=tenantDto.select
 						Username = tenantDto.RegisterDto?.Username,
 						FirstName = tenantDto.RegisterDto?.FirstName,
 						LastName = tenantDto.RegisterDto?.LastName,
@@ -62,7 +63,6 @@ namespace CompressMedia.Repositories
 					RoleName = "Admin",
 					TenantId = tenantDto.TenantId
 				};
-
 				tenant.Roles.Add(adminRole);
 
 				await _context.Tenants.AddAsync(tenant);
@@ -119,7 +119,8 @@ namespace CompressMedia.Repositories
 				{
 					user.UserPermissions!.Add(item);
 				}
-
+				User userFirst = tenant.Users.First();
+				userFirst.RoleId = adminRole.RoleId;
 				await _context.SaveChangesAsync();
 			}
 

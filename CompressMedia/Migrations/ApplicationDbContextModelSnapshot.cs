@@ -52,11 +52,16 @@ namespace CompressMedia.Migrations
                     b.Property<DateTime>("UploadDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("BlobId");
 
                     b.HasIndex("ContainerId");
 
                     b.HasIndex("TenantId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Blobs");
                 });
@@ -294,8 +299,8 @@ namespace CompressMedia.Migrations
                             Email = "tai996507@gmail.com",
                             FirstName = "Super",
                             LastName = "Admin",
-                            PasswordHash = "$2a$11$6qN5522UBFclI7Wl/YbF1uEjQkrlYLKqkB.9JMijMq0pUzDLVId2C",
-                            SecretKey = "7e09df72-e44b-4587-bd5b-45ea9a0cf3f9",
+                            PasswordHash = "$2a$11$PeGw2evl4tNTXhMc9PVdT.jCiPdjPM0yYxE.fTYzrk.9DhwyR8BsC",
+                            SecretKey = "336db662-aa22-4dc2-9993-774efa0e8b72",
                             Username = "superadmin"
                         });
                 });
@@ -430,9 +435,15 @@ namespace CompressMedia.Migrations
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("CompressMedia.Models.User", "User")
+                        .WithMany("Blobs")
+                        .HasForeignKey("UserId");
+
                     b.Navigation("BlobContainer");
 
                     b.Navigation("Tenant");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CompressMedia.Models.BlobContainer", b =>
@@ -563,6 +574,8 @@ namespace CompressMedia.Migrations
 
             modelBuilder.Entity("CompressMedia.Models.User", b =>
                 {
+                    b.Navigation("Blobs");
+
                     b.Navigation("Containers");
 
                     b.Navigation("UserPermissions");

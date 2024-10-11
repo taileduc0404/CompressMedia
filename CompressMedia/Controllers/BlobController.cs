@@ -6,6 +6,7 @@ using CompressMedia.PermissionRequirement;
 using CompressMedia.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver.Linq;
 using System.Security.Claims;
 
 namespace CompressMedia.Controllers
@@ -48,12 +49,14 @@ namespace CompressMedia.Controllers
 			IEnumerable<BlobDto> blobDto = blobList.Select(blob => new BlobDto
 			{
 				BlobId = blob.BlobId,
-				BlobName = blob.BlobName,
-				ContentType = blob.ContentType,
+				BlobName = Path.GetFileNameWithoutExtension(blob.BlobName),
+				ContentType = blob.ContentType!.StartsWith("video/") ? "Video" : "Image",
 				Size = Math.Round(blob.Size / 1048576.0, 1),
 				CompressionTime = blob.CompressionTime,
 				Status = blob.Status!,
 				ContainerId = containerId,
+				UploadedDate = blob.UploadDate,
+				Author = blob.User!.FirstName + " " + blob.User.LastName,
 			});
 
 			return View(blobDto);
@@ -76,13 +79,14 @@ namespace CompressMedia.Controllers
 		public async Task<IActionResult> CreateBlob(BlobDto blobDto)
 		{
 			string? tenantIdString = HttpContext.User.FindFirstValue("TenantId");
+			string? author = HttpContext.User.FindFirstValue(ClaimTypes.Name);
 			Guid? _tenantId = null;
 			if (!string.IsNullOrEmpty(tenantIdString) && Guid.TryParse(tenantIdString, out Guid tenantId))
 			{
 				_tenantId = tenantId;
 			}
 
-			bool result = await _blobService.CreateBlobAsync(blobDto, _tenantId);
+			bool result = await _blobService.CreateBlobAsync(blobDto, _tenantId, author!);
 			if (result == false)
 			{
 				_notyfService.Warning("Upload Video Failed.");

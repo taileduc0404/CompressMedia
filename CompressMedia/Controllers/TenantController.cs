@@ -78,7 +78,7 @@ namespace CompressMedia.Controllers
 
 			var registerDto = new RegisterDto
 			{
-				Roles = roles.Select(r => new RoleDto { RoleId = r.RoleId, RoleName = r.RoleName }).ToList()
+				Roles = roles.Select(r => new RoleDto { RoleId = r.RoleId, RoleName = r.RoleName }).ToList() ?? new List<RoleDto>()
 			};
 			return View(registerDto);
 		}

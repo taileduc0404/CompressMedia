@@ -4,6 +4,8 @@
 	{
 		public string? BlobId { get; set; }
 		public Guid? TenantId { get; set; }
+		public string? UserId { get; set; }
+		public User? User { get; set; }
 		public Tenant? Tenant { get; set; }
 		public string? BlobName { get; set; }
 		public double Size { get; set; }

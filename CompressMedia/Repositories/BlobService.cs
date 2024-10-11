@@ -29,7 +29,7 @@ namespace CompressMedia.Repositories
 		/// <returns></returns>
 		public async Task<ICollection<Blob>> GetListBlobAsync(int containerId)
 		{
-			return await _context.Blobs.Where(b => b.ContainerId == containerId).ToListAsync();
+			return await _context.Blobs.Include(x => x.User).Where(b => b.ContainerId == containerId).ToListAsync();
 		}
 
 		/// <summary>
@@ -37,7 +37,7 @@ namespace CompressMedia.Repositories
 		/// </summary>
 		/// <param name="blobDto"></param>
 		/// <returns></returns>
-		public async Task<bool> CreateBlobAsync(BlobDto blobDto, Guid? tenantId)
+		public async Task<bool> CreateBlobAsync(BlobDto blobDto, Guid? tenantId, string author)
 		{
 			if (blobDto.Data == null || blobDto.Data?.Length == 0)
 			{
@@ -69,6 +69,7 @@ namespace CompressMedia.Repositories
 					ContentType = blobDto.Data.ContentType,
 					Size = blobDto.Data.Length,
 					UploadDate = blobDto.UploadedDate,
+					UserId = (_context.Users.SingleOrDefault(x => x.Username == author)!).UserId
 				};
 				await _context.Blobs.AddAsync(newBlob);
 				await _context.SaveChangesAsync();
