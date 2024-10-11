@@ -17,6 +17,12 @@ namespace CompressMedia.Repositories
 			_userService = userService;
 		}
 
+		/// <summary>
+		/// Gán quyền vào role
+		/// </summary>
+		/// <param name="roleId"></param>
+		/// <param name="permissionSelectedId"></param>
+		/// <returns></returns>
 		public async Task<string> AssignPermissionsToRole(int roleId, List<int> permissionSelectedId)
 		{
 			var role = _context.Roles.Include(r => r.RolePermissions).FirstOrDefault(r => r.RoleId == roleId);
@@ -59,6 +65,12 @@ namespace CompressMedia.Repositories
 			return "Permissions updated.";
 		}
 
+		/// <summary>
+		/// Tạo role
+		/// </summary>
+		/// <param name="roleDto"></param>
+		/// <param name="tenantId"></param>
+		/// <returns></returns>
 		public string CreateRole(RoleDto roleDto, Guid? tenantId)
 		{
 			if (roleDto is not null)
@@ -75,6 +87,11 @@ namespace CompressMedia.Repositories
 			return null!;
 		}
 
+		/// <summary>
+		/// Xóa role
+		/// </summary>
+		/// <param name="roleId"></param>
+		/// <returns></returns>
 		public string DeleteRole(int roleId)
 		{
 			if (roleId > 0)
@@ -93,6 +110,11 @@ namespace CompressMedia.Repositories
 			return null!;
 		}
 
+		/// <summary>
+		/// Lấy danh sách role
+		/// </summary>
+		/// <param name="tenantId"></param>
+		/// <returns></returns>
 		public async Task<IEnumerable<Role>> GetAllRoles(Guid? tenantId)
 		{
 			string username = _userService.GetUserNameLoggedIn();
@@ -110,16 +132,21 @@ namespace CompressMedia.Repositories
 			return roles.Any() is true ? roles : null!;
 		}
 
+		/// <summary>
+		/// Lấy role bằng id
+		/// </summary>
+		/// <param name="roleId"></param>
+		/// <returns></returns>
 		public Role GetRoleById(int roleId)
 		{
 			return _context.Roles.SingleOrDefault(x => x.RoleId == roleId) ?? null!;
 		}
 
-		public Role GetRoleByName(string roleName)
-		{
-			throw new NotImplementedException();
-		}
-
+		/// <summary>
+		/// Lấy danh sách permission của 1 role
+		/// </summary>
+		/// <param name="roleId"></param>
+		/// <returns></returns>
 		public async Task<IEnumerable<Permission>> GetRolePermission(int roleId)
 		{
 			var permissions = await _context.RolePermissions
@@ -130,14 +157,5 @@ namespace CompressMedia.Repositories
 			return permissions.Any() ? permissions! : Enumerable.Empty<Permission>();
 		}
 
-		public bool RoleExists(int roleId)
-		{
-			throw new NotImplementedException();
-		}
-
-		public void UpdateRole(RoleDto roleDto)
-		{
-			throw new NotImplementedException();
-		}
 	}
 }
