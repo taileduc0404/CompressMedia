@@ -4,6 +4,7 @@ using CompressMedia.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CompressMedia.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241013141422_update")]
+    partial class update
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -122,32 +125,6 @@ namespace CompressMedia.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Comments");
-                });
-
-            modelBuilder.Entity("CompressMedia.Models.Like", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("BlobId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("LikedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BlobId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Likes");
                 });
 
             modelBuilder.Entity("CompressMedia.Models.Permission", b =>
@@ -357,8 +334,8 @@ namespace CompressMedia.Migrations
                             Email = "tai996507@gmail.com",
                             FirstName = "Super",
                             LastName = "Admin",
-                            PasswordHash = "$2a$11$tArnv4EIHKfhbCD1OWuztuse03zhI.eC1o/9CIFeePdO1nVJp3GFW",
-                            SecretKey = "df9dbc09-e043-451c-945a-2752450302ae",
+                            PasswordHash = "$2a$11$gPwQnrDezfPiDURfpIqBOeKNyxs5Ien76m4iE2hIgIPZiwl.on5IW",
+                            SecretKey = "90d932e5-f2c7-4efa-917e-b775804beeec",
                             Username = "superadmin"
                         });
                 });
@@ -532,21 +509,6 @@ namespace CompressMedia.Migrations
                         .WithMany("Comments")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("Blob");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("CompressMedia.Models.Like", b =>
-                {
-                    b.HasOne("CompressMedia.Models.Blob", "Blob")
-                        .WithMany()
-                        .HasForeignKey("BlobId");
-
-                    b.HasOne("CompressMedia.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
 
                     b.Navigation("Blob");
 

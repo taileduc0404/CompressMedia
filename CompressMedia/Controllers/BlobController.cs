@@ -17,20 +17,21 @@ namespace CompressMedia.Controllers
 		private readonly INotyfService _notyfService;
 		private readonly ApplicationDbContext _context;
 		private readonly ICompressService _compressService;
+		private readonly ILikeService _likeService;
 
-		public BlobController(IBlobService blobService, INotyfService notyfService, ApplicationDbContext context, ICompressService compressService)
+		public BlobController(IBlobService blobService, INotyfService notyfService, ApplicationDbContext context, ICompressService compressService, ILikeService likeService)
 		{
 			_blobService = blobService;
 			_notyfService = notyfService;
 			_context = context;
 			_compressService = compressService;
+			_likeService = likeService;
 		}
 
 		[HttpGet]
 		[CustomPermission("CreateContainer")]
 		public async Task<IActionResult> Index(int containerId)
 		{
-
 			string? tenantIdString = HttpContext.User.FindFirstValue("TenantId");
 			Guid? _tenantId = null;
 
@@ -46,7 +47,7 @@ namespace CompressMedia.Controllers
 				return RedirectToAction("AccessDenied");
 			}
 
-			IEnumerable<BlobDto> blobDto = blobList.Select(blob => new BlobDto
+			var blobDtoTasks = blobList.Select(async blob => new BlobDto
 			{
 				BlobId = blob.BlobId,
 				BlobName = Path.GetFileNameWithoutExtension(blob.BlobName),
@@ -57,10 +58,14 @@ namespace CompressMedia.Controllers
 				ContainerId = containerId,
 				UploadedDate = blob.UploadDate,
 				Author = blob.User!.FirstName + " " + blob.User.LastName,
+				LikeCount = await _likeService.GetLikesCount(blob.BlobId!)
 			});
+
+			var blobDto = await Task.WhenAll(blobDtoTasks);
 
 			return View(blobDto);
 		}
+
 
 		[HttpGet]
 		[CustomPermission("UploadMedia")]

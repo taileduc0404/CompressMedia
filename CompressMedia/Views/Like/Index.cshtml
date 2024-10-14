@@ -1,0 +1,8 @@
+﻿@model IEnumerable<CompressMedia.DTOs.LikeDto>
+
+<h2>@ViewBag.LikeCount Comments</h2>
+
+<form method="post" action="/Like/LikeBlob">
+	<input type="hidden" name="blobId" value="@ViewBag.BlobId" />
+	<button type="submit">Like</button>
+</form>

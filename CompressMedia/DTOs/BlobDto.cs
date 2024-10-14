@@ -12,7 +12,8 @@ namespace CompressMedia.DTOs
 		public DateTime UploadedDate { get; set; } = DateTime.Now;
 		public string? CompressionTime { get; set; }
 		public string? ContentType { get; set; }
-		public int ContainerId { get; set; }
+        public int LikeCount { get; set; }
+        public int ContainerId { get; set; }
 		public string? Status { get; set; }
 		public double Size { get; set; }
 		public bool IsFps { get; set; }

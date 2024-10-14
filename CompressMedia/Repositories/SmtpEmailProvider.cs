@@ -13,6 +13,13 @@ namespace CompressMedia.Repositories
 			_configuration = configuration;
 		}
 
+        /// <summary>
+        /// Gửi mail
+        /// </summary>
+        /// <param name="fullName"></param>
+        /// <param name="to"></param>
+        /// <param name="qrCodeUrl"></param>
+        /// <returns></returns>
 		public async Task SendEmailAsync(string fullName, string to, string qrCodeUrl)
 		{
 			SmtpClient smtpClient = new SmtpClient(_configuration["EmailSettings:SmtpServer"], int.Parse(_configuration["EmailSettings:Port"]!))

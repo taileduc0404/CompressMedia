@@ -15,5 +15,6 @@
 		public BlobContainer? BlobContainer { get; set; }
 		public string? ContentType { get; set; }
 		public string? Status { get; set; }
+		public ICollection<Comment>? Comments { get; set; }
 	}
 }

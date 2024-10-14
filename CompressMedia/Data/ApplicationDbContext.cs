@@ -18,6 +18,8 @@ namespace CompressMedia.Data
 		public DbSet<Permission> Permissions { get; set; }
 		public DbSet<UserPermission> UserPermissions { get; set; }
 		public DbSet<RolePermission> RolePermissions { get; set; }
+		public DbSet<Comment> Comments { get; set; }
+		public DbSet<Like> Likes { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -29,6 +31,21 @@ namespace CompressMedia.Data
 			modelBuilder.Entity<Permission>().HasKey(p => p.PermissionId);
 			modelBuilder.Entity<UserPermission>().HasKey(up => new { up.UserId, up.PermissionId });
 			modelBuilder.Entity<RolePermission>().HasKey(rp => new { rp.RoleId, rp.PermissionId });
+
+			modelBuilder.Entity<Like>()
+			.HasKey(l => l.Id);
+
+			modelBuilder.Entity<Comment>()
+			.HasOne(c => c.User)
+			.WithMany(u => u.Comments)
+			.HasForeignKey(c => c.UserId)
+			.OnDelete(DeleteBehavior.Cascade);
+
+			modelBuilder.Entity<Comment>()
+				.HasOne(c => c.Blob)
+				.WithMany(b => b.Comments)
+				.HasForeignKey(c => c.BlobId)
+				.OnDelete(DeleteBehavior.Cascade);
 
 			modelBuilder.Entity<UserPermission>()
 				.HasKey(up => new { up.UserId, up.PermissionId });

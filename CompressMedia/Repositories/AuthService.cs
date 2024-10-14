@@ -200,6 +200,7 @@ namespace CompressMedia.Services
 
 				List<Claim> claims = new List<Claim>
 				{
+					new Claim("UserId",user.UserId! ),
 					new Claim(ClaimTypes.Name, user.Username!),
 					new Claim("TenantId", user.TenantId.ToString()!)
 				};

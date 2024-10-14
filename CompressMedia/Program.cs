@@ -50,6 +50,8 @@ namespace CompressMedia
 			builder.Services.AddScoped<IRoleService, RoleService>();
 			builder.Services.AddScoped<ITenantService, TenantService>();
 			builder.Services.AddScoped<IPermissionService, PermissionService>();
+			builder.Services.AddScoped<ICommentService, CommentService>();
+			builder.Services.AddScoped<ILikeService, LikeService>();
 
 			builder.Services.Configure<FormOptions>(options =>
 			{

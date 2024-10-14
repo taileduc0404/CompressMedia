@@ -16,6 +16,7 @@
 			<th>Upload Date</th>
 			<th>Compression Time</th>
 			<th>Status</th>
+			<th>Likes</th>
 			<th>Action</th>
 		</tr>
 	</thead>
@@ -23,46 +24,51 @@
 		@foreach (var media in Model)
 		{
 			<tr>
-				<th>@media.BlobName</th>
-				<th>@media.ContentType</th>
-				<th>@media.Size</th>
-				<th>@media.Author</th>
-				<th>@media.UploadedDate</th>
-				<th>@media.CompressionTime</th>
-				<th>@media.Status</th>
+				<td>@media.BlobName</td>
+				<td>@media.ContentType</td>
+				<td>@media.Size</td>
+				<td>@media.Author</td>
+				<td>@media.UploadedDate</td>
+				<td>@media.CompressionTime</td>
+				<td>@media.Status</td>
 				<td>
-					@if (media.Status == "Compressed" || media.Status == "Compressing...")
-					{
-						if (media.ContentType == "image/jpeg")
-						{
-							<a asp-controller="Blob" asp-action="Resize" asp-route-blobId="@media.BlobId" asp-route-blobName="@media.BlobName" asp-route-contentType="@media.ContentType" asp-route-containerId="@media.ContainerId" class="btn btn-outline-success">Resize</a>
-						}
-						else
-						{
-							<button type="button" class="btn btn-outline-success" disabled>Compress</button>
-						}
-					}
-					else
-					{
-						if (media.ContentType == "image/jpeg")
-						{
-							<a asp-controller="Blob" asp-action="Resize" asp-route-blobId="@media.BlobId" asp-route-blobName="@media.BlobName" asp-route-contentType="@media.ContentType" asp-route-containerId="@media.ContainerId" class="btn btn-outline-success">Resize</a>
-						}
-						else
-						{
-							<a asp-controller="Blob" asp-action="Compress" asp-route-blobId="@media.BlobId" asp-route-blobName="@media.BlobName" asp-route-contentType="@media.ContentType" asp-route-containerId="@media.ContainerId" class="btn btn-outline-success">Compress</a>
-						}
-					}
+					<span id="like-count-@media.BlobId">@media.LikeCount</span>
+				</td>
+				<td>
+					<a asp-controller="Blob" asp-action="Resize" asp-route-blobId="@media.BlobId" class="btn btn-outline-secondary">Resize</a>
+					<a asp-controller="Blob" asp-action="Compress" asp-route-blobId="@media.BlobId" class="btn btn-outline-secondary">Compress</a>
 					<a asp-controller="Blob" asp-action="ViewBlob" asp-route-blobId="@media.BlobId" class="btn btn-outline-info">View</a>
 					<a asp-controller="Blob" asp-action="DeleteBlob" asp-route-blobId="@media.BlobId" asp-route-containerId="@media.ContainerId" class="btn btn-outline-danger">Delete</a>
+					<a asp-controller="Comment" asp-action="Index" asp-route-blobId="@media.BlobId" class="btn btn-outline-secondary">View Comments</a>
+					<a asp-controller="Comment" asp-action="CreateComment" asp-route-blobId="@media.BlobId" class="btn btn-outline-secondary">Add Comment</a>
+					<button class="btn btn-outline-secondary like-button" data-blobid="@media.BlobId">Like</button>
 				</td>
 			</tr>
 		}
 	</tbody>
 </table>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-	setTimeout(function () {
-		location.reload();
-	}, 10000);
+	$(document).ready(function () {
+		$('.like-button').click(function () {
+			var blobId = $(this).data('blobid');
+
+			$.ajax({
+				url: '@Url.Action("LikeBlob", "Like")',
+				type: 'POST',
+				data: { blobId: blobId },
+				success: function (response) {
+					if (response.success) {
+						$('#like-count-' + blobId).text(response.likeCount);
+					} else {
+						alert("An error occurred while liking the blob.");
+					}
+				},
+				error: function () {
+					alert("An error occurred while sending the request.");
+				}
+			});
+		});
+	});
 </script>

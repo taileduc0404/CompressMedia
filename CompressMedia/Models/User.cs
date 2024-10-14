@@ -16,5 +16,6 @@
 		public virtual ICollection<UserPermission>? UserPermissions { get; set; }
 		public virtual ICollection<Blob>? Blobs { get; set; }
 		public virtual ICollection<BlobContainer>? Containers { get; set; }
+		public virtual ICollection<Comment>? Comments { get; set; }
 	}
 }

@@ -1,0 +1,18 @@
+﻿@model CompressMedia.DTOs.CommentDto
+
+@{
+	ViewBag.Title = "Add Comment";
+	Layout = "_Layout";
+}
+
+<h2>Add Comment</h2>
+
+<form asp-action="CreateComment" method="post">
+	<input type="hidden" asp-for="BlobId" />
+	<div class="form-group">
+		<label asp-for="Content"></label>
+		<input asp-for="Content" class="form-control" />
+		<span asp-validation-for="Content" class="text-danger" />
+	</div>
+	<button type="submit" class="btn btn-primary">Add</button>
+</form>
