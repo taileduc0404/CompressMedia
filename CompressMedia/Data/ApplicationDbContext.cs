@@ -20,6 +20,7 @@ namespace CompressMedia.Data
 		public DbSet<RolePermission> RolePermissions { get; set; }
 		public DbSet<Comment> Comments { get; set; }
 		public DbSet<Like> Likes { get; set; }
+		public DbSet<Report> Report { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -34,6 +35,35 @@ namespace CompressMedia.Data
 
 			modelBuilder.Entity<Like>()
 			.HasKey(l => l.Id);
+
+			modelBuilder.Entity<Report>(entity =>
+			{
+				entity.HasKey(r => r.ReportId);
+
+				entity.Property(r => r.MediaId)
+					  .IsRequired(false);
+
+				entity.Property(r => r.UserId)
+					  .IsRequired(true);
+
+				entity.HasOne(r => r.User)
+					  .WithMany()
+					  .HasForeignKey(r => r.UserId)
+					  .OnDelete(DeleteBehavior.Cascade);
+
+				entity.HasOne(r => r.Blob)
+					  .WithMany()
+					  .HasForeignKey(r => r.MediaId)
+					  .OnDelete(DeleteBehavior.Cascade);
+
+				entity.HasOne(r => r.Tenant)
+					  .WithMany()
+					  .HasForeignKey(r => r.TenantId)
+					  .OnDelete(DeleteBehavior.SetNull);
+
+				entity.Property(r => r.ReportDate)
+					  .HasDefaultValueSql("GETDATE()");
+			});
 
 			modelBuilder.Entity<Comment>()
 			.HasOne(c => c.User)

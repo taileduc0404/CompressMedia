@@ -1,0 +1,19 @@
+﻿@model CompressMedia.DTOs.ReportDto
+
+@{
+	ViewData["Title"] = "Report Media";
+}
+
+<h2>Report Media</h2>
+
+@if (Model == null)
+{
+	<p>Model is null. Please check the data passed to this view.</p>
+}
+else
+{
+	<form asp-action="ReportMedia" asp-controller="Report" method="post" enctype="multipart/form-data">
+		<input type="hidden" name="blobId" value="@Model.MediaId" />
+		<button class="btn btn-outline-secondary" type="submit">Report</button>
+	</form>
+}

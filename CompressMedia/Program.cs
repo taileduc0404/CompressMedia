@@ -53,6 +53,7 @@ namespace CompressMedia
 			builder.Services.AddScoped<ICommentService, CommentService>();
 			builder.Services.AddScoped<ILikeService, LikeService>();
 			builder.Services.AddScoped<IStatisticalService, StatisticalService>();
+			builder.Services.AddScoped<IReportService, ReportService>();
 
 			builder.Services.Configure<FormOptions>(options =>
 			{

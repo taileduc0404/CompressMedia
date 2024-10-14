@@ -34,16 +34,40 @@
 				<td>
 					<span id="like-count-@media.BlobId">@media.LikeCount</span>
 				</td>
-				@* <td>@media.CommentCount</td> *@
 				<td>
-					<a asp-controller="Blob" asp-action="Resize" asp-route-blobId="@media.BlobId" class="btn btn-outline-secondary">Resize</a>
-					<a asp-controller="Blob" asp-action="Compress" asp-route-blobId="@media.BlobId" class="btn btn-outline-secondary">Compress</a>
-					<a asp-controller="Blob" asp-action="ViewBlob" asp-route-blobId="@media.BlobId" class="btn btn-outline-info">View</a>
-					<a asp-controller="Blob" asp-action="DeleteBlob" asp-route-blobId="@media.BlobId" asp-route-containerId="@media.ContainerId" class="btn btn-outline-danger">Delete</a>
-					<a asp-controller="Comment" asp-action="Index" asp-route-blobId="@media.BlobId" class="btn btn-outline-secondary">View Comments</a>
-					<a asp-controller="Comment" asp-action="CreateComment" asp-route-blobId="@media.BlobId" class="btn btn-outline-secondary">Add Comment</a>
-					<button class="btn btn-outline-secondary like-button" data-blobid="@media.BlobId">Like</button>
+					<div class="dropdown">
+						<button class="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+							Actions
+						</button>
+						<ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+							<li>
+								<a class="dropdown-item" asp-controller="Blob" asp-action="Resize" asp-route-blobId="@media.BlobId">Resize</a>
+							</li>
+							<li>
+								<a class="dropdown-item" asp-controller="Blob" asp-action="Compress" asp-route-blobId="@media.BlobId">Compress</a>
+							</li>
+							<li>
+								<a class="dropdown-item" asp-controller="Blob" asp-action="ViewBlob" asp-route-blobId="@media.BlobId">View</a>
+							</li>
+							<li>
+								<a class="dropdown-item" asp-controller="Blob" asp-action="DeleteBlob" asp-route-blobId="@media.BlobId" asp-route-containerId="@media.ContainerId">Delete</a>
+							</li>
+							<li>
+								<a class="dropdown-item" asp-controller="Comment" asp-action="Index" asp-route-blobId="@media.BlobId">View Comments</a>
+							</li>
+							<li>
+								<a class="dropdown-item" asp-controller="Comment" asp-action="CreateComment" asp-route-blobId="@media.BlobId">Add Comment</a>
+							</li>
+							<li>
+								<a class="dropdown-item" asp-controller="Report" asp-action="ReportMedia" asp-route-blobId="@media.BlobId">Report</a>
+							</li>
+							<li>
+								<button class="dropdown-item like-button" data-blobid="@media.BlobId">Like</button>
+							</li>
+						</ul>
+					</div>
 				</td>
+
 			</tr>
 		}
 	</tbody>

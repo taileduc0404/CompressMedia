@@ -1,0 +1,32 @@
+﻿@model IEnumerable<CompressMedia.DTOs.ReportDto>
+
+@{
+	ViewBag.Title = "Medias";
+	Layout = "_Layout";
+}
+
+<h2>Blobs</h2>
+<table class="table table-bordered mt-4">
+	<thead>
+		<tr>
+			<th>Tenant Name</th>
+			<th>Media Name</th>
+			<th>Report Count</th>
+			<th>Action</th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var report in Model)
+		{
+			<tr>
+				<td>@report.TenantName</td>
+				<td>@report.MediaName</td>
+				<td>@report.ReportCount</td>
+				
+				<td>
+					<a asp-controller="Blob" asp-action="Resize" asp-route-blobId="@report.TenantName" class="btn btn-outline-secondary">Delete</a>
+				</td>
+			</tr>
+		}
+	</tbody>
+</table>
