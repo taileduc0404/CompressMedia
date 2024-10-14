@@ -24,7 +24,7 @@
 				<td>@report.ReportCount</td>
 				
 				<td>
-					<a asp-controller="Blob" asp-action="Resize" asp-route-blobId="@report.TenantName" class="btn btn-outline-secondary">Delete</a>
+					<a asp-controller="Report" asp-action="DeleteMedia" asp-route-mediaId="@report.MediaId" class="btn btn-outline-secondary">Delete</a>
 				</td>
 			</tr>
 		}

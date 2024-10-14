@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CompressMedia.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241014063244_updateaaa")]
-    partial class updateaaa
+    [Migration("20241014085938_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -120,9 +120,6 @@ namespace CompressMedia.Migrations
 
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("UserName")
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("CommentId");
 
@@ -264,7 +261,61 @@ namespace CompressMedia.Migrations
                         {
                             PermissionId = 17,
                             PermissionName = "EditProfile"
+                        },
+                        new
+                        {
+                            PermissionId = 18,
+                            PermissionName = "ViewTenant"
+                        },
+                        new
+                        {
+                            PermissionId = 19,
+                            PermissionName = "ViewReport"
+                        },
+                        new
+                        {
+                            PermissionId = 20,
+                            PermissionName = "Report"
+                        },
+                        new
+                        {
+                            PermissionId = 21,
+                            PermissionName = "ViewContainer"
                         });
+                });
+
+            modelBuilder.Entity("CompressMedia.Models.Report", b =>
+                {
+                    b.Property<int>("ReportId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReportId"));
+
+                    b.Property<string>("MediaId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("ReportDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("ReportId");
+
+                    b.HasIndex("MediaId");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Report");
                 });
 
             modelBuilder.Entity("CompressMedia.Models.Role", b =>
@@ -368,8 +419,8 @@ namespace CompressMedia.Migrations
                             Email = "tai996507@gmail.com",
                             FirstName = "Super",
                             LastName = "Admin",
-                            PasswordHash = "$2a$11$icWJ3d9rG3mPhFoKmaEzH.rdxaVhO2jDrzj8XdSgmey2Ey8YKv0O2",
-                            SecretKey = "9212bc3a-aa19-456f-9019-5ac0d1e70849",
+                            PasswordHash = "$2a$11$p4a0J1AA85ZYmLrfJdmwp.Nf8L1xZ7MxrVjAFmLeojK08siFuTnGW",
+                            SecretKey = "ed861a5e-3fab-4290-a879-cd5da35415c9",
                             Username = "superadmin"
                         });
                 });
@@ -473,6 +524,26 @@ namespace CompressMedia.Migrations
                         {
                             UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
                             PermissionId = 17
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 18
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 19
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 20
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 21
                         });
                 });
 
@@ -564,6 +635,31 @@ namespace CompressMedia.Migrations
                         .HasForeignKey("UserId");
 
                     b.Navigation("Blob");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CompressMedia.Models.Report", b =>
+                {
+                    b.HasOne("CompressMedia.Models.Blob", "Blob")
+                        .WithMany()
+                        .HasForeignKey("MediaId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("CompressMedia.Models.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("CompressMedia.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Blob");
+
+                    b.Navigation("Tenant");
 
                     b.Navigation("User");
                 });

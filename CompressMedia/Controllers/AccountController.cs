@@ -2,17 +2,17 @@
 
 namespace CompressMedia.Controllers
 {
-	public class AccountController : Controller
-	{
-		public IActionResult Index()
-		{
-			return RedirectToAction(nameof(AccessDenied));
-		}
+    public class AccountController : Controller
+    {
+        public IActionResult Index()
+        {
+            return RedirectToAction(nameof(AccessDenied));
+        }
 
-		public IActionResult AccessDenied()
-		{
-			return View();
-		}
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
 
-	}
+    }
 }

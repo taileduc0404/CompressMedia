@@ -4,31 +4,31 @@ using MimeKit;
 
 namespace CompressMedia.Repositories
 {
-	public class MailKitEmailProvider : IEmailProvider
-	{
-		private readonly IConfiguration _configuration;
+    public class MailKitEmailProvider : IEmailProvider
+    {
+        private readonly IConfiguration _configuration;
 
-		public MailKitEmailProvider(IConfiguration configuration)
-		{
-			_configuration = configuration;
-		}
+        public MailKitEmailProvider(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
 
-		/// <summary>
-		/// Gửi email
-		/// </summary>
-		/// <param name="fullName"></param>
-		/// <param name="to"></param>
-		/// <param name="qrCodeUrl"></param>
-		/// <returns></returns>
-		public async Task SendEmailAsync(string fullName, string to, string qrCodeUrl)
-		{
-			var email = new MimeMessage();
-			email.From.Add(new MailboxAddress("Compress Media Service", _configuration["EmailSettings:Sender"]));
-			email.To.Add(new MailboxAddress(fullName, to));
-			email.Subject = "QR Code";
+        /// <summary>
+        /// Gửi email
+        /// </summary>
+        /// <param name="fullName"></param>
+        /// <param name="to"></param>
+        /// <param name="qrCodeUrl"></param>
+        /// <returns></returns>
+        public async Task SendEmailAsync(string fullName, string to, string qrCodeUrl)
+        {
+            var email = new MimeMessage();
+            email.From.Add(new MailboxAddress("Compress Media Service", _configuration["EmailSettings:Sender"]));
+            email.To.Add(new MailboxAddress(fullName, to));
+            email.Subject = "QR Code";
 
-			BodyBuilder bodyBuilder = new BodyBuilder();
-			bodyBuilder.HtmlBody = $@"
+            BodyBuilder bodyBuilder = new BodyBuilder();
+            bodyBuilder.HtmlBody = $@"
         <!DOCTYPE html>
         <html lang=""en"">
         <head>
@@ -83,31 +83,31 @@ namespace CompressMedia.Repositories
         </body>
         </html>";
 
-			email.Body = bodyBuilder.ToMessageBody();
+            email.Body = bodyBuilder.ToMessageBody();
 
-			using (var smtpClient = new SmtpClient())
-			{
-				try
-				{
-					await smtpClient.ConnectAsync(
-						_configuration["EmailSettings:SmtpServer"],
-						int.Parse(_configuration["EmailSettings:Port"]!),
-						MailKit.Security.SecureSocketOptions.StartTls
-					);
+            using (var smtpClient = new SmtpClient())
+            {
+                try
+                {
+                    await smtpClient.ConnectAsync(
+                        _configuration["EmailSettings:SmtpServer"],
+                        int.Parse(_configuration["EmailSettings:Port"]!),
+                        MailKit.Security.SecureSocketOptions.StartTls
+                    );
 
-					await smtpClient.AuthenticateAsync(
-						_configuration["EmailSettings:Sender"],
-						_configuration["EmailSettings:Password"]
-					);
+                    await smtpClient.AuthenticateAsync(
+                        _configuration["EmailSettings:Sender"],
+                        _configuration["EmailSettings:Password"]
+                    );
 
-					await smtpClient.SendAsync(email);
-					await smtpClient.DisconnectAsync(true);
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine($"Error sending email: {ex.Message}");
-				}
-			}
-		}
-	}
+                    await smtpClient.SendAsync(email);
+                    await smtpClient.DisconnectAsync(true);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error sending email: {ex.Message}");
+                }
+            }
+        }
+    }
 }

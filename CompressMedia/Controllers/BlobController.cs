@@ -11,272 +11,272 @@ using System.Security.Claims;
 
 namespace CompressMedia.Controllers
 {
-	public class BlobController : Controller
-	{
-		private readonly IBlobService _blobService;
-		private readonly INotyfService _notyfService;
-		private readonly ApplicationDbContext _context;
-		private readonly ICompressService _compressService;
-		private readonly ILikeService _likeService;
+    public class BlobController : Controller
+    {
+        private readonly IBlobService _blobService;
+        private readonly INotyfService _notyfService;
+        private readonly ApplicationDbContext _context;
+        private readonly ICompressService _compressService;
+        private readonly ILikeService _likeService;
 
-		public BlobController(IBlobService blobService, INotyfService notyfService, ApplicationDbContext context, ICompressService compressService, ILikeService likeService)
-		{
-			_blobService = blobService;
-			_notyfService = notyfService;
-			_context = context;
-			_compressService = compressService;
-			_likeService = likeService;
-		}
+        public BlobController(IBlobService blobService, INotyfService notyfService, ApplicationDbContext context, ICompressService compressService, ILikeService likeService)
+        {
+            _blobService = blobService;
+            _notyfService = notyfService;
+            _context = context;
+            _compressService = compressService;
+            _likeService = likeService;
+        }
 
-		[HttpGet]
-		[CustomPermission("CreateContainer")]
-		public async Task<IActionResult> Index(int containerId)
-		{
-			string? tenantIdString = HttpContext.User.FindFirstValue("TenantId");
-			Guid? tenantId = null;
+        [HttpGet]
+        [CustomPermission("ViewContainer")]
+        public async Task<IActionResult> Index(int containerId)
+        {
+            string? tenantIdString = HttpContext.User.FindFirstValue("TenantId");
+            Guid? tenantId = null;
 
-			if (!string.IsNullOrEmpty(tenantIdString) && Guid.TryParse(tenantIdString, out Guid parsedTenantId))
-			{
-				tenantId = parsedTenantId;
-			}
+            if (!string.IsNullOrEmpty(tenantIdString) && Guid.TryParse(tenantIdString, out Guid parsedTenantId))
+            {
+                tenantId = parsedTenantId;
+            }
 
-			IEnumerable<Blob> blobList = await _blobService.GetListBlobAsync(containerId);
-			var blobIds = blobList.Select(blob => blob.BlobId!.ToString()).ToList();
-			var likeCounts = await _likeService.GetLikesCountForBlobsAsync(blobIds);
+            IEnumerable<Blob> blobList = await _blobService.GetListBlobAsync(containerId);
+            var blobIds = blobList.Select(blob => blob.BlobId!.ToString()).ToList();
+            var likeCounts = await _likeService.GetLikesCountForBlobsAsync(blobIds);
 
-			var blobDtoList = new List<BlobDto>();
+            var blobDtoList = new List<BlobDto>();
 
-			foreach (var blob in blobList)
-			{
-				var blobDto = new BlobDto
-				{
-					BlobId = blob.BlobId,
-					BlobName = Path.GetFileNameWithoutExtension(blob.BlobName),
-					ContentType = blob.ContentType!.StartsWith("video/") ? "Video" : "Image",
-					Size = Math.Round(blob.Size / 1048576.0, 1),
-					CompressionTime = blob.CompressionTime,
-					Status = blob.Status!,
-					ContainerId = containerId,
-					UploadedDate = blob.UploadDate,
-					Author = $"{blob.User!.FirstName} {blob.User.LastName}",
-					LikeCount = likeCounts.TryGetValue(blob.BlobId!.ToString(), out var count) ? count : 0,
-					//CommentCount= blob.Comments!.Count(),
-				};
+            foreach (var blob in blobList)
+            {
+                var blobDto = new BlobDto
+                {
+                    BlobId = blob.BlobId,
+                    BlobName = Path.GetFileNameWithoutExtension(blob.BlobName),
+                    ContentType = blob.ContentType!.StartsWith("video/") ? "Video" : "Image",
+                    Size = Math.Round(blob.Size / 1048576.0, 1),
+                    CompressionTime = blob.CompressionTime,
+                    Status = blob.Status!,
+                    ContainerId = containerId,
+                    UploadedDate = blob.UploadDate,
+                    Author = $"{blob.User!.FirstName} {blob.User.LastName}",
+                    LikeCount = likeCounts.TryGetValue(blob.BlobId!.ToString(), out var count) ? count : 0,
+                    //CommentCount= blob.Comments!.Count(),
+                };
 
-				blobDtoList.Add(blobDto);
-			}
+                blobDtoList.Add(blobDto);
+            }
 
-			return View(blobDtoList);
-		}
+            return View(blobDtoList);
+        }
 
 
-		[HttpGet]
-		[CustomPermission("UploadMedia")]
-		public IActionResult CreateBlob(int containerId)
-		{
-			BlobDto blobDto = new BlobDto
-			{
-				ContainerId = containerId,
-			};
-			return View(blobDto);
-		}
+        [HttpGet]
+        [CustomPermission("UploadMedia")]
+        public IActionResult CreateBlob(int containerId)
+        {
+            BlobDto blobDto = new BlobDto
+            {
+                ContainerId = containerId,
+            };
+            return View(blobDto);
+        }
 
-		[HttpPost]
-		[CustomPermission("UploadMedia")]
-		[RequestFormLimits(MultipartBodyLengthLimit = 536870912)]
-		public async Task<IActionResult> CreateBlob(BlobDto blobDto)
-		{
-			string? tenantIdString = HttpContext.User.FindFirstValue("TenantId");
-			string? author = HttpContext.User.FindFirstValue(ClaimTypes.Name);
-			Guid? _tenantId = null;
-			if (!string.IsNullOrEmpty(tenantIdString) && Guid.TryParse(tenantIdString, out Guid tenantId))
-			{
-				_tenantId = tenantId;
-			}
+        [HttpPost]
+        [CustomPermission("UploadMedia")]
+        [RequestFormLimits(MultipartBodyLengthLimit = 536870912)]
+        public async Task<IActionResult> CreateBlob(BlobDto blobDto)
+        {
+            string? tenantIdString = HttpContext.User.FindFirstValue("TenantId");
+            string? author = HttpContext.User.FindFirstValue(ClaimTypes.Name);
+            Guid? _tenantId = null;
+            if (!string.IsNullOrEmpty(tenantIdString) && Guid.TryParse(tenantIdString, out Guid tenantId))
+            {
+                _tenantId = tenantId;
+            }
 
-			bool result = await _blobService.CreateBlobAsync(blobDto, _tenantId, author!);
-			if (result == false)
-			{
-				_notyfService.Warning("Upload Video Failed.");
-				return RedirectToAction("Index");
-			}
-			else if (result == true)
-			{
-				_notyfService.Success("Upload video successfully.");
-				return RedirectToAction("Index", new { containerId = blobDto.ContainerId });
-			}
-			return RedirectToAction("Index", new { containerId = blobDto.ContainerId });
-		}
+            bool result = await _blobService.CreateBlobAsync(blobDto, _tenantId, author!);
+            if (result == false)
+            {
+                _notyfService.Warning("Upload Video Failed.");
+                return RedirectToAction("Index");
+            }
+            else if (result == true)
+            {
+                _notyfService.Success("Upload video successfully.");
+                return RedirectToAction("Index", new { containerId = blobDto.ContainerId });
+            }
+            return RedirectToAction("Index", new { containerId = blobDto.ContainerId });
+        }
 
-		[HttpGet]
-		[CustomPermission("CompressMedia")]
-		public IActionResult Compress(string blobId, string blobName, string contentType, int containerId)
-		{
-			BlobDto blobDto = new BlobDto
-			{
-				BlobId = blobId,
-				BlobName = blobName,
-				ContentType = contentType,
-				ContainerId = containerId
-			};
-			return View(blobDto);
-		}
+        [HttpGet]
+        [CustomPermission("CompressMedia")]
+        public IActionResult Compress(string blobId, string blobName, string contentType, int containerId)
+        {
+            BlobDto blobDto = new BlobDto
+            {
+                BlobId = blobId,
+                BlobName = blobName,
+                ContentType = contentType,
+                ContainerId = containerId
+            };
+            return View(blobDto);
+        }
 
-		[HttpPost]
-		[CustomPermission("CompressMedia")]
-		public async Task<IActionResult> Compress(BlobDto blobDto)
-		{
-			try
-			{
-				string result = await _compressService.CompressMedia(blobDto);
-				switch (result)
-				{
-					case "notfound":
-						_notyfService.Error("Video not found.");
-						break;
-					case "cannotGetInfo":
-						_notyfService.Error("Cannot get video's info.");
-						break;
-					case "compressed":
-						_notyfService.Error("This video has been compressed.");
-						break;
+        [HttpPost]
+        [CustomPermission("CompressMedia")]
+        public async Task<IActionResult> Compress(BlobDto blobDto)
+        {
+            try
+            {
+                string result = await _compressService.CompressMedia(blobDto);
+                switch (result)
+                {
+                    case "notfound":
+                        _notyfService.Error("Video not found.");
+                        break;
+                    case "cannotGetInfo":
+                        _notyfService.Error("Cannot get video's info.");
+                        break;
+                    case "compressed":
+                        _notyfService.Error("This video has been compressed.");
+                        break;
 
-				}
+                }
 
-				_notyfService.Success("Compress successfully.");
-				return RedirectToAction("Index", new { containerId = blobDto.ContainerId });
-			}
-			catch (Exception)
-			{
-				_notyfService.Error("Cannot Compress");
-				return RedirectToAction("Index", new { containerId = blobDto.ContainerId });
-			}
-		}
+                _notyfService.Success("Compress successfully.");
+                return RedirectToAction("Index", new { containerId = blobDto.ContainerId });
+            }
+            catch (Exception)
+            {
+                _notyfService.Error("Cannot Compress");
+                return RedirectToAction("Index", new { containerId = blobDto.ContainerId });
+            }
+        }
 
-		[HttpGet]
-		[ActionName("DeleteBlob")]
-		[CustomPermission("DeleteMedia")]
-		public async Task<IActionResult> DeleteBlobGet(string blobId, int containerId)
-		{
-			string? tenantIdString = HttpContext.User.FindFirstValue("TenantId");
-			Guid? _tenantId = null;
+        [HttpGet]
+        [ActionName("DeleteBlob")]
+        [CustomPermission("DeleteMedia")]
+        public async Task<IActionResult> DeleteBlobGet(string blobId, int containerId)
+        {
+            string? tenantIdString = HttpContext.User.FindFirstValue("TenantId");
+            Guid? _tenantId = null;
 
-			if (!string.IsNullOrEmpty(tenantIdString) && Guid.TryParse(tenantIdString, out Guid tenantId))
-			{
-				_tenantId = tenantId;
-			}
+            if (!string.IsNullOrEmpty(tenantIdString) && Guid.TryParse(tenantIdString, out Guid tenantId))
+            {
+                _tenantId = tenantId;
+            }
 
-			Blob? blob = await _context.Blobs.SingleOrDefaultAsync(x => x.BlobId == blobId);
+            Blob? blob = await _context.Blobs.SingleOrDefaultAsync(x => x.BlobId == blobId);
 
-			if (blob is null)
-			{
-				_notyfService.Error("Blob not found.");
-				return RedirectToAction("Index", new { containerId = containerId });
-			}
+            if (blob is null)
+            {
+                _notyfService.Error("Blob not found.");
+                return RedirectToAction("Index", new { containerId = containerId });
+            }
 
-			BlobDto blobDto = new BlobDto
-			{
-				BlobId = blobId,
-				ContainerId = containerId
-			};
-			return View(blobDto);
-		}
+            BlobDto blobDto = new BlobDto
+            {
+                BlobId = blobId,
+                ContainerId = containerId
+            };
+            return View(blobDto);
+        }
 
-		[HttpPost]
-		[ActionName("DeleteBlob")]
-		[CustomPermission("DeleteMedia")]
-		public async Task<IActionResult> DeleteBlobPost(string blobId, int containerId)
-		{
-			string result = await _blobService.DeleteBlobAsync(blobId);
-			switch (result)
-			{
-				case "null":
-					_notyfService.Error("Blob notfound");
-					return RedirectToAction("Index", new { containerId = containerId });
-				case "notfound":
-					_notyfService.Error("Blob notfound");
-					return RedirectToAction("Index", new { containerId = containerId });
-				default:
-					_notyfService.Success("Delete blob successfully");
-					return RedirectToAction("Index", new { containerId = containerId });
-			}
+        [HttpPost]
+        [ActionName("DeleteBlob")]
+        [CustomPermission("DeleteMedia")]
+        public async Task<IActionResult> DeleteBlobPost(string blobId, int containerId)
+        {
+            string result = await _blobService.DeleteBlobAsync(blobId);
+            switch (result)
+            {
+                case "null":
+                    _notyfService.Error("Blob notfound");
+                    return RedirectToAction("Index", new { containerId = containerId });
+                case "notfound":
+                    _notyfService.Error("Blob notfound");
+                    return RedirectToAction("Index", new { containerId = containerId });
+                default:
+                    _notyfService.Success("Delete blob successfully");
+                    return RedirectToAction("Index", new { containerId = containerId });
+            }
 
-		}
+        }
 
-		[HttpGet]
-		[CustomPermission("ViewMedia")]
-		public async Task<IActionResult> ViewBlob(string blobId)
-		{
-			try
-			{
-				Blob? blob = await _context.Blobs.SingleOrDefaultAsync(x => x.BlobId == blobId);
-				if (blob is not null)
-				{
-					var stream = await _blobService.GetBlobStreamAsync(blobId);
-					if (blob!.BlobName!.EndsWith(".jpg"))
-					{
-						return File(stream, "image/jpg");
-					}
-					if (blob!.BlobName.EndsWith(".png"))
-					{
-						return File(stream, "image/png");
-					}
-					if (blob!.BlobName.EndsWith(".webp"))
-					{
-						return File(stream, "image/webp");
-					}
-					return File(stream, "video/mp4");
-				}
-				_notyfService.Error("Image not found");
-				return RedirectToAction("Index", new { containerId = blob!.ContainerId });
-			}
-			catch (FileNotFoundException)
-			{
-				return NotFound();
-			}
-		}
+        [HttpGet]
+        [CustomPermission("ViewMedia")]
+        public async Task<IActionResult> ViewBlob(string blobId)
+        {
+            try
+            {
+                Blob? blob = await _context.Blobs.SingleOrDefaultAsync(x => x.BlobId == blobId);
+                if (blob is not null)
+                {
+                    var stream = await _blobService.GetBlobStreamAsync(blobId);
+                    if (blob!.BlobName!.EndsWith(".jpg"))
+                    {
+                        return File(stream, "image/jpg");
+                    }
+                    if (blob!.BlobName.EndsWith(".png"))
+                    {
+                        return File(stream, "image/png");
+                    }
+                    if (blob!.BlobName.EndsWith(".webp"))
+                    {
+                        return File(stream, "image/webp");
+                    }
+                    return File(stream, "video/mp4");
+                }
+                _notyfService.Error("Image not found");
+                return RedirectToAction("Index", new { containerId = blob!.ContainerId });
+            }
+            catch (FileNotFoundException)
+            {
+                return NotFound();
+            }
+        }
 
-		[HttpGet]
-		[CustomPermission("ResizeMedia")]
-		public IActionResult Resize(string blobId, string blobName, string contentType, int containerId)
-		{
-			BlobDto blobDto = new BlobDto
-			{
-				BlobId = blobId,
-				BlobName = blobName,
-				ContentType = contentType,
-				ContainerId = containerId
-			};
-			return View(blobDto);
-		}
+        [HttpGet]
+        [CustomPermission("ResizeMedia")]
+        public IActionResult Resize(string blobId, string blobName, string contentType, int containerId)
+        {
+            BlobDto blobDto = new BlobDto
+            {
+                BlobId = blobId,
+                BlobName = blobName,
+                ContentType = contentType,
+                ContainerId = containerId
+            };
+            return View(blobDto);
+        }
 
-		[HttpPost]
-		[CustomPermission("ResizeMedia")]
-		public async Task<IActionResult> Resize(BlobDto blobDto)
-		{
-			try
-			{
-				string result = await _compressService.ImageResizer(blobDto);
-				switch (result)
-				{
-					case "notfound":
-						_notyfService.Error("Image not found.");
-						break;
-					case "cannotGetInfo":
-						_notyfService.Error("Cannot get image's info.");
-						break;
-					case "compressed":
-						_notyfService.Error("This image has been compressed.");
-						break;
-				}
-				_notyfService.Success("Compress successfully.");
-				return RedirectToAction("Index", new { containerId = blobDto.ContainerId });
-			}
-			catch (Exception)
-			{
-				_notyfService.Error("Cannot Compress");
-				return RedirectToAction("Index", new { containerId = blobDto.ContainerId });
-			}
-		}
-	}
+        [HttpPost]
+        [CustomPermission("ResizeMedia")]
+        public async Task<IActionResult> Resize(BlobDto blobDto)
+        {
+            try
+            {
+                string result = await _compressService.ImageResizer(blobDto);
+                switch (result)
+                {
+                    case "notfound":
+                        _notyfService.Error("Image not found.");
+                        break;
+                    case "cannotGetInfo":
+                        _notyfService.Error("Cannot get image's info.");
+                        break;
+                    case "compressed":
+                        _notyfService.Error("This image has been compressed.");
+                        break;
+                }
+                _notyfService.Success("Compress successfully.");
+                return RedirectToAction("Index", new { containerId = blobDto.ContainerId });
+            }
+            catch (Exception)
+            {
+                _notyfService.Error("Cannot Compress");
+                return RedirectToAction("Index", new { containerId = blobDto.ContainerId });
+            }
+        }
+    }
 }

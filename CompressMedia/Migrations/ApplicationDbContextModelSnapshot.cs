@@ -258,6 +258,26 @@ namespace CompressMedia.Migrations
                         {
                             PermissionId = 17,
                             PermissionName = "EditProfile"
+                        },
+                        new
+                        {
+                            PermissionId = 18,
+                            PermissionName = "ViewTenant"
+                        },
+                        new
+                        {
+                            PermissionId = 19,
+                            PermissionName = "ViewReport"
+                        },
+                        new
+                        {
+                            PermissionId = 20,
+                            PermissionName = "Report"
+                        },
+                        new
+                        {
+                            PermissionId = 21,
+                            PermissionName = "ViewContainer"
                         });
                 });
 
@@ -396,8 +416,8 @@ namespace CompressMedia.Migrations
                             Email = "tai996507@gmail.com",
                             FirstName = "Super",
                             LastName = "Admin",
-                            PasswordHash = "$2a$11$AhYH.dvAcDj8AKoqHi8pbOrNGKfqaoVWY585WXRajRFvGDXduruZ6",
-                            SecretKey = "076d16d5-2576-475b-b867-53be2d3ce156",
+                            PasswordHash = "$2a$11$p4a0J1AA85ZYmLrfJdmwp.Nf8L1xZ7MxrVjAFmLeojK08siFuTnGW",
+                            SecretKey = "ed861a5e-3fab-4290-a879-cd5da35415c9",
                             Username = "superadmin"
                         });
                 });
@@ -501,6 +521,26 @@ namespace CompressMedia.Migrations
                         {
                             UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
                             PermissionId = 17
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 18
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 19
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 20
+                        },
+                        new
+                        {
+                            UserId = "7a4fad07-84c6-4a6c-abc6-80b9948602a6",
+                            PermissionId = 21
                         });
                 });
 
