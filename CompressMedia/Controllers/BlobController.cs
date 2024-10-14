@@ -33,37 +33,40 @@ namespace CompressMedia.Controllers
 		public async Task<IActionResult> Index(int containerId)
 		{
 			string? tenantIdString = HttpContext.User.FindFirstValue("TenantId");
-			Guid? _tenantId = null;
+			Guid? tenantId = null;
 
-			if (!string.IsNullOrEmpty(tenantIdString) && Guid.TryParse(tenantIdString, out Guid tenantId))
+			if (!string.IsNullOrEmpty(tenantIdString) && Guid.TryParse(tenantIdString, out Guid parsedTenantId))
 			{
-				_tenantId = tenantId;
+				tenantId = parsedTenantId;
 			}
 
 			IEnumerable<Blob> blobList = await _blobService.GetListBlobAsync(containerId);
+			var blobIds = blobList.Select(blob => blob.BlobId!.ToString()).ToList();
+			var likeCounts = await _likeService.GetLikesCountForBlobsAsync(blobIds);
 
-			if (blobList == null)
+			var blobDtoList = new List<BlobDto>();
+
+			foreach (var blob in blobList)
 			{
-				return RedirectToAction("AccessDenied");
+				var blobDto = new BlobDto
+				{
+					BlobId = blob.BlobId,
+					BlobName = Path.GetFileNameWithoutExtension(blob.BlobName),
+					ContentType = blob.ContentType!.StartsWith("video/") ? "Video" : "Image",
+					Size = Math.Round(blob.Size / 1048576.0, 1),
+					CompressionTime = blob.CompressionTime,
+					Status = blob.Status!,
+					ContainerId = containerId,
+					UploadedDate = blob.UploadDate,
+					Author = $"{blob.User!.FirstName} {blob.User.LastName}",
+					LikeCount = likeCounts.TryGetValue(blob.BlobId!.ToString(), out var count) ? count : 0,
+					//CommentCount= blob.Comments!.Count(),
+				};
+
+				blobDtoList.Add(blobDto);
 			}
 
-			var blobDtoTasks = blobList.Select(async blob => new BlobDto
-			{
-				BlobId = blob.BlobId,
-				BlobName = Path.GetFileNameWithoutExtension(blob.BlobName),
-				ContentType = blob.ContentType!.StartsWith("video/") ? "Video" : "Image",
-				Size = Math.Round(blob.Size / 1048576.0, 1),
-				CompressionTime = blob.CompressionTime,
-				Status = blob.Status!,
-				ContainerId = containerId,
-				UploadedDate = blob.UploadDate,
-				Author = blob.User!.FirstName + " " + blob.User.LastName,
-				LikeCount = await _likeService.GetLikesCount(blob.BlobId!)
-			});
-
-			var blobDto = await Task.WhenAll(blobDtoTasks);
-
-			return View(blobDto);
+			return View(blobDtoList);
 		}
 
 

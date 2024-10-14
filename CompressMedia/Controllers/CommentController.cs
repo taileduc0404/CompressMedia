@@ -22,6 +22,7 @@ namespace CompressMedia.Controllers
 
 			IEnumerable<CommentDto> commentDto = comments.Select(comment => new CommentDto
 			{
+				CommentId = comment.CommentId,
 				Content = comment.Content,
 				CreatedDate = comment.CreatedDate,
 				UserName = comment.User!.Username
@@ -35,7 +36,7 @@ namespace CompressMedia.Controllers
 		{
 			CommentDto commentDto = new CommentDto
 			{
-				BlobId = blobId,
+				BlobId = blobId
 			};
 			return View(commentDto);
 		}
@@ -45,6 +46,27 @@ namespace CompressMedia.Controllers
 		{
 			string? userId = HttpContext.User.FindFirstValue("UserId");
 			string result = await _commentService.CreateComment(userId!, commentDto);
+			if (result == null)
+				return View();
+
+			return RedirectToAction("Index", new { blobId = commentDto.BlobId });
+		}
+
+		[HttpGet]
+		public IActionResult ReplyComment(int commentId)
+		{
+			CommentDto commentDto = new CommentDto
+			{
+				CommentId = commentId
+			};
+			return View(commentDto);
+		}
+
+		[HttpPost]
+		public async Task<IActionResult> ReplyComment(int commentId, CommentDto commentDto)
+		{
+			string? userId = HttpContext.User.FindFirstValue("UserId");
+			string result = await _commentService.ReplyComment(commentId, userId!, commentDto);
 			if (result == null)
 				return View();
 

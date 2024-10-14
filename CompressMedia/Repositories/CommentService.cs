@@ -23,8 +23,7 @@ namespace CompressMedia.Repositories
 				BlobId = commentDto.BlobId,
 				Content = commentDto.Content,
 				CreatedDate = commentDto.CreatedDate,
-				UserName = commentDto.UserName,
-
+				ParentComment = 0
 			});
 			await _context.SaveChangesAsync();
 			return "ok";
@@ -32,5 +31,23 @@ namespace CompressMedia.Repositories
 
 		public async Task<List<Comment>> GetAllComment(string userId, string blobId)
 			=> await _context.Comments.Include(x => x.User).Where(x => x.BlobId == blobId).ToListAsync() ?? new List<Comment>();
+
+		public async Task<string> ReplyComment(int commentId, string userId, CommentDto commentDto)
+		{
+			if (commentDto is null || userId is null)
+				return null!;
+			Comment? comment = await _context.Comments.FirstOrDefaultAsync(x => x.CommentId == commentId);
+
+			await _context.Comments.AddAsync(new Comment
+			{
+				UserId = userId,
+				BlobId = comment!.BlobId,
+				Content = commentDto.Content,
+				CreatedDate = commentDto.CreatedDate,
+				ParentComment = commentId
+			});
+			await _context.SaveChangesAsync();
+			return "ok";
+		}
 	}
 }

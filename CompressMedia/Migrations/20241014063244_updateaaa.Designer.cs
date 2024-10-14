@@ -4,6 +4,7 @@ using CompressMedia.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CompressMedia.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241014063244_updateaaa")]
+    partial class updateaaa
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -117,6 +120,9 @@ namespace CompressMedia.Migrations
 
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserName")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("CommentId");
 
@@ -362,8 +368,8 @@ namespace CompressMedia.Migrations
                             Email = "tai996507@gmail.com",
                             FirstName = "Super",
                             LastName = "Admin",
-                            PasswordHash = "$2a$11$HvGacZUZFa0QVWAjVWdEgezmh710qJ1pxhmgaO2RNZfw5ouz.PyC6",
-                            SecretKey = "17899506-c59d-4eb3-948e-84d852443860",
+                            PasswordHash = "$2a$11$icWJ3d9rG3mPhFoKmaEzH.rdxaVhO2jDrzj8XdSgmey2Ey8YKv0O2",
+                            SecretKey = "9212bc3a-aa19-456f-9019-5ac0d1e70849",
                             Username = "superadmin"
                         });
                 });

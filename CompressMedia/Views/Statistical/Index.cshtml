@@ -1,0 +1,61 @@
+﻿@model IEnumerable<CompressMedia.DTOs.BlobDto>
+
+@{
+    ViewBag.Title = "Thống Kê Media";
+}
+
+<h2>Thống Kê Media</h2>
+
+<h3>Top 10 Media has the most likes</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Content Type</th>
+            <th>Size (MB)</th>
+            <th>Author</th>
+            <th>Upload Date</th>
+            <th>Likes</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var blob in ViewBag.BlobLikes)
+        {
+            <tr>
+                <td>@blob.BlobName</td>
+                <td>@blob.ContentType</td>
+                <td>@blob.Size</td>
+                <td>@blob.Author</td>
+                <td>@blob.UploadedDate.ToShortDateString()</td>
+                <td>@blob.LikeCount</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h3>Top 10 Media has the most comments</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Content Type</th>
+            <th>Size (MB)</th>
+            <th>Author</th>
+            <th>Upload Date</th>
+            <th>Comments</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var blob in ViewBag.BlobComments)
+        {
+            <tr>
+                <td>@blob.BlobName</td>
+                <td>@blob.ContentType</td>
+                <td>@blob.Size</td>
+                <td>@blob.Author</td>
+                <td>@blob.UploadedDate.ToShortDateString()</td>
+                <td>@blob.LikeCount</td> 
+            </tr>
+        }
+    </tbody>
+</table>

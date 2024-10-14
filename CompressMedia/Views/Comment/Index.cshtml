@@ -2,19 +2,11 @@
 
 <h2>Comments</h2>
 
-@* <button type="button" class="btn btn-primary">
-	<a asp-controller="Comment" asp-action="CreateComment" asp-route-blobId="" style="text-decoration: none; color: white;"> Add Comment</a>
-</button> *@
 @foreach (var comment in Model)
 {
 	<div>
 		<p><strong>@comment.UserName</strong>: @comment.Content</p>
 		<p><small>@comment.CreatedDate.ToString("g")</small></p>
+		<a asp-controller="Comment" asp-action="ReplyComment" asp-route-commentId="@comment.CommentId" class="btn btn-outline-secondary">Reply</a>
 	</div>
 }
-
-@* <form method="post" action="/Comments/Create">
-	<input type="hidden" name="blobId" value="@ViewBag.BlobId" />
-	<textarea name="content"></textarea>
-	<button type="submit">Add Comment</button>
-</form> *@

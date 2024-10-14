@@ -56,5 +56,17 @@ namespace CompressMedia.Repositories
 			await _context.SaveChangesAsync();
 			return "ok";
 		}
+
+		public async Task<Dictionary<string, int>> GetLikesCountForBlobsAsync(IEnumerable<string> blobIds)
+		{
+			var likeCounts = await _context.Likes
+				.Where(l => blobIds.Contains(l.BlobId))
+				.GroupBy(l => l.BlobId!)
+				.Select(g => new { BlobId = g.Key, Count = g.Count() })
+				.ToDictionaryAsync(g => g.BlobId, g => g.Count);
+
+			return likeCounts;
+		}
+
 	}
 }

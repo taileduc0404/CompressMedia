@@ -18,9 +18,9 @@ namespace CompressMedia.Controllers
 		{
 			string? userId = HttpContext.User.FindFirstValue("UserId");
 
-			bool isLike = await _likeService.IsBlobLikedByUser(blobId, userId!);
+			bool isLiked = await _likeService.IsBlobLikedByUser(blobId, userId!);
 
-			if (isLike)
+			if (isLiked)
 			{
 				await _likeService.DeleteUserLike(blobId, userId!);
 			}
@@ -30,7 +30,9 @@ namespace CompressMedia.Controllers
 			}
 
 			int likeCount = await _likeService.GetLikesCount(blobId);
+
 			return Json(new { success = true, likeCount });
 		}
+
 	}
 }

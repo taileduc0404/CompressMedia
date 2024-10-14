@@ -7,5 +7,6 @@ namespace CompressMedia.Repositories.Interfaces
 	{
 		Task<List<Comment>> GetAllComment(string userId, string blobId);
 		Task<string> CreateComment(string userId, CommentDto commentDto);
+		Task<string> ReplyComment(int commentId, string userId, CommentDto commentDto);
 	}
 }
