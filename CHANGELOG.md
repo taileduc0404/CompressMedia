@@ -4,10 +4,10 @@
 
 ### 2.0.0 - 2025-02-25
 **Breaking Change:**
--   **Changed `sessionId` data type from **GUID** to **String****.
+-   Changed 'sessionId' data type from 'GUID' to 'String': this change ensures compatibility with the 2FA feature.
 
 -   **Added:**
-    - Two-Factor Authentication (2FA): enhance security with two-step login, with the option to enable or disable 2FA as needed.
+    - **Two-Factor Authentication (2FA)**: enhance security with two-step login, with the option to enable or disable 2FA as needed.
 
 
 ### 1.1.2 - 2025-02-21
