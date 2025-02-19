@@ -7,7 +7,7 @@
 -   **Changed `sessionId` data type from **GUID** to **String****.
 
 -   **Added:**
-    - **Two-Factor Authentication (2FA)** system upgraded with improved real-time monitoring.
+    - Two-Factor Authentication (2FA): enhance security with two-step login, with the option to enable or disable 2FA as needed.
 
 
 ### 1.1.2 - 2025-02-21
